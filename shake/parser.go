@@ -17,12 +17,16 @@ type Program struct {
 	Statements []Statement
 }
 
+type pToken struct {
+	tok Token
+	lit string
+}
+
 type Parser struct {
 	s   *Scanner
 	buf struct {
-		full bool
-		tok  Token
-		lit  string
+		len  int
+		vals []pToken
 	}
 }
 
@@ -88,18 +92,19 @@ func (p *Parser) parseStatement() (Statement, error) {
 }
 
 func (p *Parser) scan() (tok Token, lit string) {
-	if p.buf.full {
-		p.buf.full = false
-		return p.buf.tok, p.buf.lit
+	if p.buf.len > 0 {
+		vals := p.buf.vals
+		pt := vals[len(vals)-p.buf.len]
+		p.buf.len--
+		return pt.tok, pt.lit
 	}
 
 	tok, lit = p.s.Scan()
-
-	p.buf.tok, p.buf.lit = tok, lit
+	p.buf.vals = append(p.buf.vals, pToken{tok, lit})
 
 	return
 }
 
 func (p *Parser) unscan() {
-	p.buf.full = true
+	p.buf.len++
 }
