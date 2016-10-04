@@ -9,12 +9,24 @@ import (
 )
 
 func main() {
+	fmt.Println("LEX:")
 	lex()
-	parse()
+	fmt.Println()
+
+	fmt.Println("PARSE:")
+	prog := parse()
+	fmt.Println()
+
+	fmt.Println("ASSEMBLE:")
+	instructions, err := shake.Assemble(prog)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	fmt.Printf("%+v\n", instructions)
 }
 
 func lex() {
-	file, err := os.Open("loading.mixal")
+	file, err := os.Open("programM.mixal")
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -42,8 +54,8 @@ func lex() {
 	}
 }
 
-func parse() {
-	file, err := os.Open("loading.mixal")
+func parse() *shake.Program {
+	file, err := os.Open("programM.mixal")
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -57,4 +69,6 @@ func parse() {
 	}
 
 	fmt.Printf("%+v\n", prog)
+
+	return prog
 }

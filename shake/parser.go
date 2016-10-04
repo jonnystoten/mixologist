@@ -55,40 +55,38 @@ func (p *Parser) Parse() (*Program, error) {
 func (p *Parser) parseStatement() (Statement, error) {
 	stmt := MixStatement{}
 
-	tok, lit := p.scan()
-	if tok != WS {
+	if tok, lit := p.scan(); tok != WS {
 		return nil, fmt.Errorf("Symbols not supported yet (%v, %v)", tok, lit)
 	}
 
-	tok, lit = p.scan()
+	tok, lit := p.scan()
 	if tok != STRING {
 		return nil, fmt.Errorf("Expected OP code (%v, %v)", tok, lit)
 	}
-
 	stmt.Op = lit
 
-	tok, lit = p.scan()
-	if tok == EOL {
+	if tok, _ := p.scan(); tok == EOL {
 		return stmt, nil
 	}
 	p.unscan()
 
-	tok, lit = p.scan()
-	if tok != WS {
-		return nil, fmt.Errorf("Expected WS (%v, %v)", tok, lit)
-	}
-
-	tok, lit = p.scan()
-	if tok == NUMBER {
+	if tok, lit := p.scanIgnoreWhitespace(); tok == NUMBER {
 		stmt.Address = lit
 	}
 
-	tok, _ = p.scan()
-	if tok != EOL {
+	if tok, lit := p.scan(); tok != EOL {
 		return nil, fmt.Errorf("Expected EOL (%v, %v)", tok, lit)
 	}
 
 	return stmt, nil
+}
+
+func (p *Parser) scanIgnoreWhitespace() (tok Token, lit string) {
+	tok, lit = p.scan()
+	if tok == WS {
+		tok, lit = p.scan()
+	}
+	return
 }
 
 func (p *Parser) scan() (tok Token, lit string) {

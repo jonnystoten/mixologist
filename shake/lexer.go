@@ -32,6 +32,18 @@ const (
 
 	STRING
 	NUMBER
+
+	PLUS
+	MINUS
+	ASTERISK
+	DIVIDE
+	SHIFTDIVIDE
+	FIELDSIGN
+
+	COMMA
+	LPAREN
+	RPAREN
+	LITERALQUOTE
 )
 
 const eof = rune(0)
@@ -47,6 +59,15 @@ func NewScanner(reader io.Reader) *Scanner {
 func (s *Scanner) Scan() (tok Token, lit string) {
 	r := s.read()
 
+	if r == '#' {
+		// ignore everything up to the end of the line
+		for {
+			if next := s.read(); next == '\n' {
+				return EOL, string(r)
+			}
+		}
+	}
+
 	if isWhitespace(r) {
 		s.unread()
 		return s.scanWhitespace()
@@ -56,28 +77,48 @@ func (s *Scanner) Scan() (tok Token, lit string) {
 		return s.scanAlphaNum()
 	}
 
+	if r == '/' {
+		next := s.read()
+		if next == '/' {
+			return SHIFTDIVIDE, "//"
+		}
+		s.unread()
+		return DIVIDE, string(r)
+	}
+
 	switch r {
 	case eof:
 		return EOF, ""
 	case '\n':
 		return EOL, string(r)
+	case '+':
+		return PLUS, string(r)
+	case '-':
+		return MINUS, string(r)
+	case '*':
+		return ASTERISK, string(r)
+	case ':':
+		return FIELDSIGN, string(r)
+	case ',':
+		return COMMA, string(r)
+	case '(':
+		return LPAREN, string(r)
+	case ')':
+		return RPAREN, string(r)
+	case '=':
+		return LITERALQUOTE, string(r)
 	}
 
 	return ILLEGAL, string(r)
 }
 
 func (s *Scanner) scanWhitespace() (tok Token, lit string) {
-	buf := bytes.Buffer{}
-	buf.WriteRune(s.read())
-
 	for {
 		if r := s.read(); r == eof {
 			break
 		} else if !isWhitespace(r) {
 			s.unread()
 			break
-		} else {
-			buf.WriteRune(r)
 		}
 	}
 
