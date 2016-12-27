@@ -47,3 +47,10 @@ func ApplyFieldSpec(word Word, fieldSpec byte) Word {
 
 	return newWord
 }
+
+func CastAsAddress(word Word) Address {
+	return Address{
+		Sign:  word.Sign,
+		Value: [2]byte{word.Bytes[3], word.Bytes[4]},
+	}
+}
