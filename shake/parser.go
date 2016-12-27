@@ -3,12 +3,23 @@ package shake
 import (
 	"fmt"
 	"io"
+
+	"jonnystoten.com/mixologist/mix"
 )
 
+type Node interface {
+}
+
+type Symbol struct {
+	Name string
+}
+
 type Statement interface {
+	Node
 }
 
 type MixStatement struct {
+	Symbol  *Symbol
 	Op      string
 	Address string
 }
@@ -55,17 +66,16 @@ func (p *Parser) Parse() (*Program, error) {
 func (p *Parser) parseStatement() (Statement, error) {
 	stmt := MixStatement{}
 
-	if tok, lit := p.scan(); tok != WS {
-		return nil, fmt.Errorf("Symbols not supported yet (%v, %v)", tok, lit)
-	}
+	symbol := p.parseSymbol()
+	stmt.Symbol = symbol
 
-	tok, lit := p.scan()
-	if tok != STRING {
-		return nil, fmt.Errorf("Expected OP code (%v, %v)", tok, lit)
+	op, err := p.parseOpCode()
+	if err != nil {
+		return nil, err
 	}
-	stmt.Op = lit
+	stmt.Op = op
 
-	if tok, _ := p.scan(); tok == EOL {
+	if tok, _ := p.scanIgnoreWhitespace(); tok == EOL {
 		return stmt, nil
 	}
 	p.unscan()
@@ -79,6 +89,28 @@ func (p *Parser) parseStatement() (Statement, error) {
 	}
 
 	return stmt, nil
+}
+
+func (p *Parser) parseSymbol() *Symbol {
+	if tok, lit := p.scan(); tok == STRING {
+		return &Symbol{Name: lit}
+	}
+
+	p.unscan()
+	return nil
+}
+
+func (p *Parser) parseOpCode() (string, error) {
+	tok, lit := p.scanIgnoreWhitespace()
+	if tok != STRING {
+		return "", fmt.Errorf("Expected OP code (%v, %v)", tok, lit)
+	}
+
+	if _, ok := mix.OpCodeTable[lit]; !ok {
+		return "", fmt.Errorf("Unknown OP code (%v)", lit)
+	}
+
+	return lit, nil
 }
 
 func (p *Parser) scanIgnoreWhitespace() (tok Token, lit string) {

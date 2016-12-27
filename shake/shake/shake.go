@@ -1,32 +1,58 @@
 package main
 
 import (
+	"encoding/binary"
 	"fmt"
 	"log"
 	"os"
 
+	"jonnystoten.com/mixologist/mix"
 	"jonnystoten.com/mixologist/shake"
 )
 
 func main() {
-	fmt.Println("LEX:")
+	log.Println("SHAKE")
+	log.Println("==========")
+	log.Println("LEX:")
 	lex()
-	fmt.Println()
+	log.Println()
 
-	fmt.Println("PARSE:")
+	log.Println("PARSE:")
 	prog := parse()
-	fmt.Println()
+	log.Println()
 
-	fmt.Println("ASSEMBLE:")
+	log.Println("ASSEMBLE:")
 	instructions, err := shake.Assemble(prog)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	fmt.Printf("%+v\n", instructions)
+	log.Printf("%+v\n", instructions)
+
+	for _, instruction := range instructions {
+		word := mix.Word{
+			Sign: instruction.Address.Sign,
+			Bytes: [5]byte{
+				instruction.Address.Value[0],
+				instruction.Address.Value[1],
+				instruction.IndexSpec,
+				instruction.FieldSpec,
+				instruction.OpCode,
+			},
+		}
+		err = binary.Write(os.Stdout, binary.LittleEndian, word)
+		if err != nil {
+			log.Fatalln(err)
+			break
+		}
+	}
+
+	log.Println("done!")
+	log.Println("==========")
+	log.Println()
 }
 
 func lex() {
-	file, err := os.Open("programM.mixal")
+	file, err := os.Open("loading.mixal")
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -34,28 +60,33 @@ func lex() {
 
 	scanner := shake.NewScanner(file)
 
+	var debug string
 	for {
 		tok, lit := scanner.Scan()
+
 		if tok == shake.EOF {
-			fmt.Println("[EOF]")
+			log.Println("[EOF]")
+			debug = ""
 			break
 		}
 
 		if tok == shake.ILLEGAL {
-			fmt.Println("ERROR", lit)
+			log.Println("ERROR", lit)
+			debug = ""
 			break
 		}
 
 		if tok == shake.EOL {
-			fmt.Println("[EOL]")
+			log.Printf("%v[EOL]", debug)
+			debug = ""
 		} else {
-			fmt.Printf("[%v]", lit)
+			debug += fmt.Sprintf("[%v]", lit)
 		}
 	}
 }
 
 func parse() *shake.Program {
-	file, err := os.Open("programM.mixal")
+	file, err := os.Open("loading.mixal")
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -68,7 +99,7 @@ func parse() *shake.Program {
 		log.Fatalln("ERROR:", err)
 	}
 
-	fmt.Printf("%+v\n", prog)
+	log.Printf("%+v\n", prog)
 
 	return prog
 }
