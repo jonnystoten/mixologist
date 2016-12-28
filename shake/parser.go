@@ -19,8 +19,21 @@ type Statement interface {
 }
 
 type MixStatement struct {
+	Statement
 	Symbol  *Symbol
 	Op      string
+	Address string
+}
+
+type OrigStatement struct {
+	Statement
+	Symbol  *Symbol
+	Address string
+}
+
+type ConStatement struct {
+	Statement
+	Symbol  *Symbol
 	Address string
 }
 
@@ -64,16 +77,39 @@ func (p *Parser) Parse() (*Program, error) {
 }
 
 func (p *Parser) parseStatement() (Statement, error) {
-	stmt := MixStatement{}
+	if tok, _ := p.scan(); tok == EOL {
+		return p.parseStatement()
+	}
+	p.unscan()
 
 	symbol := p.parseSymbol()
-	stmt.Symbol = symbol
-
 	op, err := p.parseOpCode()
 	if err != nil {
 		return nil, err
 	}
-	stmt.Op = op
+
+	switch op {
+	case "EQU":
+		return nil, fmt.Errorf("%v is unsupported", op)
+	case "ORIG":
+		return p.parseOrigStatement(symbol)
+	case "CON":
+		return p.parseConStatement(symbol)
+	case "ALF":
+		return nil, fmt.Errorf("%v is unsupported", op)
+	case "END":
+		return nil, fmt.Errorf("%v is unsupported", op)
+	default:
+		return p.parseMixStatement(symbol, op)
+	}
+}
+
+func (p *Parser) parseMixStatement(symbol *Symbol, op string) (MixStatement, error) {
+	stmt := MixStatement{Symbol: symbol, Op: op}
+
+	if _, ok := mix.OperationTable[op]; !ok {
+		return stmt, fmt.Errorf("Unknown OP code (%v)", op)
+	}
 
 	if tok, _ := p.scanIgnoreWhitespace(); tok == EOL {
 		return stmt, nil
@@ -85,7 +121,40 @@ func (p *Parser) parseStatement() (Statement, error) {
 	}
 
 	if tok, lit := p.scan(); tok != EOL {
-		return nil, fmt.Errorf("Expected EOL (%v, %v)", tok, lit)
+		return stmt, fmt.Errorf("Expected EOL (%v, %v)", tok, lit)
+	}
+
+	return stmt, nil
+}
+
+func (p *Parser) parseOrigStatement(symbol *Symbol) (OrigStatement, error) {
+	stmt := OrigStatement{Symbol: symbol}
+
+	if tok, lit := p.scanIgnoreWhitespace(); tok == NUMBER {
+		stmt.Address = lit
+	}
+
+	if tok, lit := p.scan(); tok != EOL {
+		return stmt, fmt.Errorf("Expected EOL (%v, %v)", tok, lit)
+	}
+
+	return stmt, nil
+}
+
+func (p *Parser) parseConStatement(symbol *Symbol) (ConStatement, error) {
+	stmt := ConStatement{Symbol: symbol}
+
+	if tok, _ := p.scanIgnoreWhitespace(); tok == EOL {
+		return stmt, nil
+	}
+	p.unscan()
+
+	if tok, lit := p.scanIgnoreWhitespace(); tok == NUMBER {
+		stmt.Address = lit
+	}
+
+	if tok, lit := p.scan(); tok != EOL {
+		return stmt, fmt.Errorf("Expected EOL (%v, %v)", tok, lit)
 	}
 
 	return stmt, nil
@@ -104,10 +173,6 @@ func (p *Parser) parseOpCode() (string, error) {
 	tok, lit := p.scanIgnoreWhitespace()
 	if tok != STRING {
 		return "", fmt.Errorf("Expected OP code (%v, %v)", tok, lit)
-	}
-
-	if _, ok := mix.OperationTable[lit]; !ok {
-		return "", fmt.Errorf("Unknown OP code (%v)", lit)
 	}
 
 	return lit, nil
