@@ -24,12 +24,12 @@ func Assemble(program *Program) ([]mix.Instruction, error) {
 }
 
 func assembleMixStatement(stmt MixStatement) (mix.Instruction, error) {
-	opCode, ok := mix.OpCodeTable[stmt.Op]
+	opInfo, ok := mix.OperationTable[stmt.Op]
 	if !ok {
 		return mix.Instruction{}, fmt.Errorf("Unknown op code: %v", stmt.Op)
 	}
 
-	instruction := mix.Instruction{OpCode: opCode}
+	instruction := mix.Instruction{OpCode: opInfo.OpCode, FieldSpec: opInfo.DefaultFS}
 
 	if stmt.Address != "" {
 		address, err := strconv.Atoi(stmt.Address)

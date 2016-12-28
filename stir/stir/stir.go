@@ -30,6 +30,7 @@ func main() {
 
 	computer := stir.NewComputer()
 	copy(computer.Memory[:], words)
+	computer.Memory[2000] = mix.Word{Sign: mix.Negative, Bytes: [5]byte{1, 16, 3, 5, 4}}
 
 	computer.Run()
 

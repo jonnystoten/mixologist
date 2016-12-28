@@ -1,6 +1,10 @@
 package stir
 
-import "jonnystoten.com/mixologist/mix"
+import (
+	"log"
+
+	"jonnystoten.com/mixologist/mix"
+)
 
 type Computer struct {
 	Running        bool
@@ -33,6 +37,7 @@ func (c *Computer) Execute(instruction *mix.Instruction) {
 	case instruction.OpCode == mix.HLT:
 		c.Running = false
 	case instruction.OpCode == mix.LDA:
+		log.Printf("Ins: %v", instruction)
 		c.Accumulator = mix.ApplyFieldSpec(c.Memory[c.getIndexedAddressValue(instruction)], instruction.FieldSpec)
 	case instruction.OpCode >= mix.LD1 && instruction.OpCode <= mix.LD6:
 		index := instruction.OpCode - mix.LD1

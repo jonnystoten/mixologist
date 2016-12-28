@@ -106,7 +106,7 @@ func (p *Parser) parseOpCode() (string, error) {
 		return "", fmt.Errorf("Expected OP code (%v, %v)", tok, lit)
 	}
 
-	if _, ok := mix.OpCodeTable[lit]; !ok {
+	if _, ok := mix.OperationTable[lit]; !ok {
 		return "", fmt.Errorf("Unknown OP code (%v)", lit)
 	}
 

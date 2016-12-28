@@ -14,7 +14,7 @@ type Word struct {
 
 func DecodeInstruction(word *Word) *Instruction {
 	address := Address{Sign: word.Sign}
-	copy(address.Value[:], word.Bytes[0:1])
+	copy(address.Value[:], word.Bytes[0:2])
 
 	return &Instruction{
 		Address:   address,
