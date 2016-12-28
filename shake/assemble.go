@@ -29,7 +29,7 @@ func assembleMixStatement(stmt MixStatement) (mix.Instruction, error) {
 		return mix.Instruction{}, fmt.Errorf("Unknown op code: %v", stmt.Op)
 	}
 
-	instruction := mix.Instruction{OpCode: byte(opCode)}
+	instruction := mix.Instruction{OpCode: opCode}
 
 	if stmt.Address != "" {
 		address, err := strconv.Atoi(stmt.Address)

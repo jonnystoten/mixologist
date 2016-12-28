@@ -20,7 +20,7 @@ func DecodeInstruction(word *Word) *Instruction {
 		Address:   address,
 		IndexSpec: word.Bytes[2],
 		FieldSpec: word.Bytes[3],
-		OpCode:    word.Bytes[4],
+		OpCode:    OpCode(word.Bytes[4]),
 	}
 }
 

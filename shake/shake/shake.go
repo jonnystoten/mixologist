@@ -36,7 +36,7 @@ func main() {
 				instruction.Address.Value[1],
 				instruction.IndexSpec,
 				instruction.FieldSpec,
-				instruction.OpCode,
+				byte(instruction.OpCode),
 			},
 		}
 		err = binary.Write(os.Stdout, binary.LittleEndian, word)

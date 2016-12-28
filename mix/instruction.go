@@ -15,7 +15,7 @@ func (a *Address) GetValue() uint16 {
 
 type Instruction struct {
 	Address   Address
-	OpCode    byte
+	OpCode    OpCode
 	FieldSpec byte
 	IndexSpec byte
 }
