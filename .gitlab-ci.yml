@@ -1,5 +1,9 @@
 image: golang
 
-build:
+build-shake:
   script:
-   - go build
+   - go build ./shake
+
+build-stir:
+  script:
+   - go build ./stir
