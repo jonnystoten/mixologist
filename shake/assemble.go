@@ -2,13 +2,15 @@ package shake
 
 import (
 	"fmt"
+	"log"
 	"strconv"
 
 	"jonnystoten.com/mixologist/mix"
 )
 
-func Assemble(program *Program) ([]mix.Instruction, error) {
-	var instructions []mix.Instruction
+func Assemble(program *Program) ([]mix.Word, error) {
+	words := make([]mix.Word, 4000)
+	locationCounter := 0
 	for _, stmt := range program.Statements {
 		switch s := stmt.(type) {
 		case MixStatement:
@@ -16,11 +18,29 @@ func Assemble(program *Program) ([]mix.Instruction, error) {
 			if err != nil {
 				return nil, err
 			}
-			instructions = append(instructions, instruction)
+			word := mix.EncodeInstruction(instruction)
+			words[locationCounter] = word
+			log.Printf("%v: %v", locationCounter, word)
+			locationCounter++
+		case OrigStatement:
+			address, err := strconv.Atoi(s.Address)
+			if err != nil {
+				return nil, err
+			}
+			locationCounter = address
+		case ConStatement:
+			address, err := strconv.Atoi(s.Address)
+			if err != nil {
+				return nil, err
+			}
+			word := mix.NewWord(address)
+			words[locationCounter] = word
+			log.Printf("%v: %v", locationCounter, word)
+			locationCounter++
 		}
 	}
 
-	return instructions, nil
+	return words, nil
 }
 
 func assembleMixStatement(stmt MixStatement) (mix.Instruction, error) {

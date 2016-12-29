@@ -1,10 +1,6 @@
 package stir
 
-import (
-	"log"
-
-	"jonnystoten.com/mixologist/mix"
-)
+import "jonnystoten.com/mixologist/mix"
 
 type Computer struct {
 	Running        bool
@@ -26,18 +22,17 @@ func (c *Computer) Run() {
 	c.Running = true
 	for c.Running {
 		word := c.Memory[c.ProgramCounter]
-		instruction := mix.DecodeInstruction(&word)
+		instruction := mix.DecodeInstruction(word)
 		c.Execute(instruction)
 		c.ProgramCounter++ // TODO: will this screw up jumps?
 	}
 }
 
-func (c *Computer) Execute(instruction *mix.Instruction) {
+func (c *Computer) Execute(instruction mix.Instruction) {
 	switch {
 	case instruction.OpCode == mix.HLT:
 		c.Running = false
 	case instruction.OpCode == mix.LDA:
-		log.Printf("Ins: %v", instruction)
 		c.Accumulator = mix.ApplyFieldSpec(c.Memory[c.getIndexedAddressValue(instruction)], instruction.FieldSpec)
 	case instruction.OpCode >= mix.LD1 && instruction.OpCode <= mix.LD6:
 		index := instruction.OpCode - mix.LD1
@@ -48,7 +43,7 @@ func (c *Computer) Execute(instruction *mix.Instruction) {
 	}
 }
 
-func (c *Computer) getIndexedAddressValue(i *mix.Instruction) uint16 {
+func (c *Computer) getIndexedAddressValue(i mix.Instruction) uint16 {
 	value := i.Address.GetValue()
 	index := i.IndexSpec
 	indexValue := c.Index[index].GetValue()

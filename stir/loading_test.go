@@ -40,7 +40,7 @@ func TestLDA(t *testing.T) {
 	for _, test := range tests {
 		computer := NewComputer()
 		computer.Memory[2000] = mix.Word{Sign: mix.Negative, Bytes: [5]byte{1, 16, 3, 5, 4}}
-		computer.Execute(&test.instruction)
+		computer.Execute(test.instruction)
 
 		actual := computer.Accumulator
 		if actual != test.expected {
@@ -83,7 +83,7 @@ func TestLDX(t *testing.T) {
 	for _, test := range tests {
 		computer := NewComputer()
 		computer.Memory[2000] = mix.Word{Sign: mix.Negative, Bytes: [5]byte{1, 16, 3, 5, 4}}
-		computer.Execute(&test.instruction)
+		computer.Execute(test.instruction)
 
 		actual := computer.Extension
 		if actual != test.expected {
@@ -133,7 +133,7 @@ func TestLDi(t *testing.T) {
 	for _, test := range tests {
 		computer := NewComputer()
 		computer.Memory[2000] = mix.Word{Sign: mix.Negative, Bytes: [5]byte{0, 0, 0, 5, 4}}
-		computer.Execute(&test.instruction)
+		computer.Execute(test.instruction)
 
 		actual := computer.Index[test.index-1]
 		if actual != test.expected {

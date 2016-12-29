@@ -6,7 +6,6 @@ import (
 	"log"
 	"os"
 
-	"jonnystoten.com/mixologist/mix"
 	"jonnystoten.com/mixologist/shake"
 )
 
@@ -22,23 +21,12 @@ func main() {
 	log.Println()
 
 	log.Println("ASSEMBLE:")
-	instructions, err := shake.Assemble(prog)
+	words, err := shake.Assemble(prog)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	log.Printf("%+v\n", instructions)
 
-	for _, instruction := range instructions {
-		word := mix.Word{
-			Sign: instruction.Address.Sign,
-			Bytes: [5]byte{
-				instruction.Address.Value[0],
-				instruction.Address.Value[1],
-				instruction.IndexSpec,
-				instruction.FieldSpec,
-				byte(instruction.OpCode),
-			},
-		}
+	for _, word := range words {
 		err = binary.Write(os.Stdout, binary.LittleEndian, word)
 		if err != nil {
 			log.Fatalln(err)
@@ -99,7 +87,7 @@ func parse() *shake.Program {
 		log.Fatalln("ERROR:", err)
 	}
 
-	log.Printf("%+v\n", prog)
+	log.Printf("%+v", prog)
 
 	return prog
 }
