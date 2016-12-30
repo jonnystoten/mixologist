@@ -6,4 +6,7 @@ stages:
 build:
   stage: build
   script:
+   - cd /
+   - mv /builds/jonnystoten/mixologist $GOPATH/src/jonnystoten.com/mixologist
+   - cd $GOPATH/src/jonnystoten.com/mixologist
    - go build ./...
