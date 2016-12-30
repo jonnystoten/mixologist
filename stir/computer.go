@@ -34,12 +34,25 @@ func (c *Computer) Execute(instruction mix.Instruction) {
 		c.Running = false
 	case instruction.OpCode == mix.LDA:
 		c.Accumulator = mix.ApplyFieldSpec(c.Memory[c.getIndexedAddressValue(instruction)], instruction.FieldSpec)
-	case instruction.OpCode >= mix.LD1 && instruction.OpCode <= mix.LD6:
+	case mix.LD1 <= instruction.OpCode && instruction.OpCode <= mix.LD6:
 		index := instruction.OpCode - mix.LD1
 		word := mix.ApplyFieldSpec(c.Memory[c.getIndexedAddressValue(instruction)], instruction.FieldSpec)
 		c.Index[index] = mix.CastAsAddress(word)
 	case instruction.OpCode == mix.LDX:
 		c.Extension = mix.ApplyFieldSpec(c.Memory[c.getIndexedAddressValue(instruction)], instruction.FieldSpec)
+	case instruction.OpCode == mix.LDAN:
+		word := mix.ApplyFieldSpec(c.Memory[c.getIndexedAddressValue(instruction)], instruction.FieldSpec)
+		word = mix.ToggleSign(word)
+		c.Accumulator = word
+	case mix.LD1N <= instruction.OpCode && instruction.OpCode <= mix.LD6N:
+		index := instruction.OpCode - mix.LD1N
+		word := mix.ApplyFieldSpec(c.Memory[c.getIndexedAddressValue(instruction)], instruction.FieldSpec)
+		word = mix.ToggleSign(word)
+		c.Index[index] = mix.CastAsAddress(word)
+	case instruction.OpCode == mix.LDXN:
+		word := mix.ApplyFieldSpec(c.Memory[c.getIndexedAddressValue(instruction)], instruction.FieldSpec)
+		word = mix.ToggleSign(word)
+		c.Extension = word
 	}
 }
 

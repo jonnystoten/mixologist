@@ -21,13 +21,22 @@ func NewWord(value int) Word {
 
 	bytes := [5]byte{}
 	for i := 0; i < 5; i++ {
-		maxVal := Pow(64, 4-i)
+		maxVal := pow(64, 4-i)
 		b := byte(value / maxVal)
 		bytes[i] = b
 		value %= maxVal
 	}
 
 	return Word{Sign: sign, Bytes: bytes}
+}
+
+func ToggleSign(word Word) Word {
+	if word.Sign == Positive {
+		word.Sign = Negative
+	} else {
+		word.Sign = Positive
+	}
+	return word
 }
 
 func EncodeInstruction(instruction Instruction) Word {
@@ -86,7 +95,7 @@ func CastAsAddress(word Word) Address {
 	}
 }
 
-func Pow(a, b int) int {
+func pow(a, b int) int {
 	p := 1
 	for b > 0 {
 		if b&1 != 0 {
