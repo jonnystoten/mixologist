@@ -6,8 +6,9 @@ stages:
 build:
   stage: build
   script:
-   - cd /
    - mkdir -p $GOPATH/src/jonnystoten.com
    - cp -r /builds/jonnystoten/mixologist $GOPATH/src/jonnystoten.com
-   - cd $GOPATH/src/jonnystoten.com/mixologist
-   - go build ./...
+   - go build jonnystoten.com/mixologist/stir
+   - go build jonnystoten.com/mixologist/shake
+  artifacts:
+    untracked: true
