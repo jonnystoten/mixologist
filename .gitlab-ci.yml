@@ -1,0 +1,14 @@
+image: golang
+
+stages:
+  - build
+
+build:
+  stage: build
+  script:
+   - mkdir -p $GOPATH/src/jonnystoten.com
+   - cp -r /builds/jonnystoten/mixologist $GOPATH/src/jonnystoten.com
+   - go build -o bin/stir jonnystoten.com/mixologist/stir
+   - go build -o bin/shake jonnystoten.com/mixologist/shake
+  artifacts:
+    untracked: true
