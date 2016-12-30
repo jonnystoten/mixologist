@@ -1,20 +1,9 @@
 image: golang
 
 stages:
-  - build-lib
   - build
 
-build-mix:
-  stage: build-lib
-  script:
-   - go build ./mix
-
-build-shake:
+build:
   stage: build
   script:
-   - go build ./shake
-
-build-stir:
-  stage: build
-  script:
-   - go build ./stir
+   - go build ./...
