@@ -7,7 +7,7 @@ build:
   stage: build
   script:
    - cd /
-   - mkdir -p $GOPATH/src/jonnystoten.com/mixologist
-   - mv /builds/jonnystoten/mixologist $GOPATH/src/jonnystoten.com/mixologist
+   - mkdir -p $GOPATH/src/jonnystoten.com
+   - mv /builds/jonnystoten/mixologist $GOPATH/src/jonnystoten.com
    - cd $GOPATH/src/jonnystoten.com/mixologist
    - go build ./...
