@@ -8,6 +8,6 @@ build:
   script:
    - cd /
    - mkdir -p $GOPATH/src/jonnystoten.com
-   - mv /builds/jonnystoten/mixologist $GOPATH/src/jonnystoten.com
+   - cp -r /builds/jonnystoten/mixologist $GOPATH/src/jonnystoten.com
    - cd $GOPATH/src/jonnystoten.com/mixologist
    - go build ./...
