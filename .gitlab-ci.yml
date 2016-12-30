@@ -8,7 +8,7 @@ build:
   script:
    - mkdir -p $GOPATH/src/jonnystoten.com
    - cp -r /builds/jonnystoten/mixologist $GOPATH/src/jonnystoten.com
-   - go build jonnystoten.com/mixologist/stir
-   - go build jonnystoten.com/mixologist/shake
+   - go build -o bin/stir jonnystoten.com/mixologist/stir
+   - go build -o bin/shake jonnystoten.com/mixologist/shake
   artifacts:
     untracked: true
