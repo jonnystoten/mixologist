@@ -11,7 +11,7 @@ func isWhitespace(r rune) bool {
 }
 
 func isLetter(r rune) bool {
-	return r >= 'A' && r <= 'Z'
+	return (r >= 'A' && r <= 'Z') || r == '∆' || r == '∏' || r == '∑'
 }
 
 func isDigit(r rune) bool {
@@ -20,6 +20,10 @@ func isDigit(r rune) bool {
 
 func isAlphaNum(r rune) bool {
 	return isLetter(r) || isDigit(r)
+}
+
+func isCharCode(r rune) bool {
+	return isAlphaNum(r) || r == ' ' || r == '.' || r == '"' || r == '$' || r == '<' || r == '>' || r == '@' || r == ';' || r == '\''
 }
 
 type Token int
@@ -44,6 +48,9 @@ const (
 	LPAREN
 	RPAREN
 	LITERALQUOTE
+
+	STRINGLITERAL
+	CHARCODE
 )
 
 const eof = rune(0)
@@ -76,6 +83,9 @@ func (s *Scanner) Scan() (tok Token, lit string) {
 		s.unread()
 		return s.scanAlphaNum()
 	}
+	if r == '"' {
+		return s.scanStringLiteral()
+	}
 
 	if r == '/' {
 		next := s.read()
@@ -107,6 +117,8 @@ func (s *Scanner) Scan() (tok Token, lit string) {
 		return RPAREN, string(r)
 	case '=':
 		return LITERALQUOTE, string(r)
+	case '.', '$', '<', '>', '@', ';', '"', '\'': // this is just to stop *-comments freaking out
+		return CHARCODE, string(r)
 	}
 
 	return ILLEGAL, string(r)
@@ -148,6 +160,28 @@ func (s *Scanner) scanAlphaNum() (tok Token, lit string) {
 	}
 
 	return STRING, buf.String()
+}
+
+func (s *Scanner) scanStringLiteral() (tok Token, lit string) {
+	buf := bytes.Buffer{}
+	buf.WriteRune('"') // initial quote
+
+	for {
+		r := s.read()
+		if r == eof {
+			return ILLEGAL, buf.String()
+		}
+
+		buf.WriteRune(r)
+
+		if !isCharCode(r) {
+			return ILLEGAL, buf.String()
+		}
+
+		if r == '"' {
+			return STRINGLITERAL, buf.String()
+		}
+	}
 }
 
 func (s *Scanner) read() rune {
