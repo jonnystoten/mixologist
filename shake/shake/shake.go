@@ -10,14 +10,20 @@ import (
 )
 
 func main() {
+	args := os.Args[1:]
+	if len(args) != 1 {
+		log.Fatalln("Usage: shake filename")
+	}
+	filename := args[0]
+
 	log.Println("SHAKE")
 	log.Println("==========")
 	log.Println("LEX:")
-	lex()
+	lex(filename)
 	log.Println()
 
 	log.Println("PARSE:")
-	prog := parse()
+	prog := parse(filename)
 	log.Println()
 
 	log.Println("ASSEMBLE:")
@@ -39,8 +45,8 @@ func main() {
 	log.Println()
 }
 
-func lex() {
-	file, err := os.Open("loading.mixal")
+func lex(filename string) {
+	file, err := os.Open(filename)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -73,8 +79,8 @@ func lex() {
 	}
 }
 
-func parse() *shake.Program {
-	file, err := os.Open("loading.mixal")
+func parse(filename string) *shake.Program {
+	file, err := os.Open(filename)
 	if err != nil {
 		log.Fatalln(err)
 	}
