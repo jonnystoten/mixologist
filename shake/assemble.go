@@ -58,7 +58,7 @@ func assembleMixStatement(stmt MixStatement) (mix.Instruction, error) {
 	case Number:
 		address = aPart.Value
 	default:
-		return mix.Instruction{}, fmt.Errorf("No value for A-part")
+		return mix.Instruction{}, fmt.Errorf("No value for A-part at %+v", stmt)
 	}
 
 	sign := mix.Positive
