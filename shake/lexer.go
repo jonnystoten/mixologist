@@ -56,14 +56,29 @@ const (
 const eof = rune(0)
 
 type Scanner struct {
-	r *bufio.Reader
+	r        *bufio.Reader
+	line     int
+	col      int
+	lastCols map[int]int
 }
 
 func NewScanner(reader io.Reader) *Scanner {
-	return &Scanner{r: bufio.NewReader(reader)}
+	return &Scanner{r: bufio.NewReader(reader), line: 1, col: 0, lastCols: make(map[int]int)}
 }
 
-func (s *Scanner) Scan() (tok Token, lit string) {
+type Lexeme struct {
+	Tok  Token
+	Lit  string
+	Line int
+	Col  int
+}
+
+func (s *Scanner) Scan() Lexeme {
+	tok, lit := s.scanToken()
+	return Lexeme{tok, lit, s.line, s.col}
+}
+
+func (s *Scanner) scanToken() (tok Token, lit string) {
 	r := s.read()
 
 	if r == '#' {
@@ -73,6 +88,17 @@ func (s *Scanner) Scan() (tok Token, lit string) {
 				return EOL, string(r)
 			}
 		}
+	}
+
+	if r == '*' && s.col == 1 {
+		// ignore the whole line
+		for {
+			if next := s.read(); next == '\n' {
+				break
+			}
+		}
+
+		return s.scanToken()
 	}
 
 	if isWhitespace(r) {
@@ -189,9 +215,25 @@ func (s *Scanner) read() rune {
 	if err != nil {
 		return eof
 	}
+
+	if r == '\n' {
+		s.lastCols[s.line] = s.col
+		s.line++
+		s.col = 0
+	} else {
+		s.col++
+	}
+
 	return r
 }
 
 func (s *Scanner) unread() {
+	if s.col == 0 {
+		s.line--
+		s.col = s.lastCols[s.line]
+	} else {
+		s.col--
+	}
+
 	s.r.UnreadRune()
 }

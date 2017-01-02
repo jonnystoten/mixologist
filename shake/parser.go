@@ -41,16 +41,11 @@ type Program struct {
 	Statements []Statement
 }
 
-type pToken struct {
-	tok Token
-	lit string
-}
-
 type Parser struct {
 	s   *Scanner
 	buf struct {
 		len  int
-		vals []pToken
+		vals []Lexeme
 	}
 }
 
@@ -62,7 +57,7 @@ func (p *Parser) Parse() (*Program, error) {
 	prg := &Program{}
 
 	for {
-		if tok, _ := p.scan(); tok == EOF {
+		if lexeme := p.scan(); lexeme.Tok == EOF {
 			break
 		}
 		p.unscan()
@@ -77,7 +72,7 @@ func (p *Parser) Parse() (*Program, error) {
 }
 
 func (p *Parser) parseStatement() (Statement, error) {
-	if tok, _ := p.scan(); tok == EOL {
+	if lexeme := p.scan(); lexeme.Tok == EOL {
 		return p.parseStatement()
 	}
 	p.unscan()
@@ -111,17 +106,17 @@ func (p *Parser) parseMixStatement(symbol *Symbol, op string) (MixStatement, err
 		return stmt, fmt.Errorf("Unknown OP code (%v)", op)
 	}
 
-	if tok, _ := p.scanIgnoreWhitespace(); tok == EOL {
+	if lexeme := p.scanIgnoreWhitespace(); lexeme.Tok == EOL {
 		return stmt, nil
 	}
 	p.unscan()
 
-	if tok, lit := p.scanIgnoreWhitespace(); tok == NUMBER {
-		stmt.Address = lit
+	if lexeme := p.scanIgnoreWhitespace(); lexeme.Tok == NUMBER {
+		stmt.Address = lexeme.Lit
 	}
 
-	if tok, lit := p.scan(); tok != EOL {
-		return stmt, fmt.Errorf("Expected EOL (%v, %v)", tok, lit)
+	if lexeme := p.scan(); lexeme.Tok != EOL {
+		return stmt, parseError("Expected EOL", lexeme)
 	}
 
 	return stmt, nil
@@ -130,12 +125,12 @@ func (p *Parser) parseMixStatement(symbol *Symbol, op string) (MixStatement, err
 func (p *Parser) parseOrigStatement(symbol *Symbol) (OrigStatement, error) {
 	stmt := OrigStatement{Symbol: symbol}
 
-	if tok, lit := p.scanIgnoreWhitespace(); tok == NUMBER {
-		stmt.Address = lit
+	if lexeme := p.scanIgnoreWhitespace(); lexeme.Tok == NUMBER {
+		stmt.Address = lexeme.Lit
 	}
 
-	if tok, lit := p.scan(); tok != EOL {
-		return stmt, fmt.Errorf("Expected EOL (%v, %v)", tok, lit)
+	if lexeme := p.scan(); lexeme.Tok != EOL {
+		return stmt, parseError("Expected EOL", lexeme)
 	}
 
 	return stmt, nil
@@ -144,25 +139,25 @@ func (p *Parser) parseOrigStatement(symbol *Symbol) (OrigStatement, error) {
 func (p *Parser) parseConStatement(symbol *Symbol) (ConStatement, error) {
 	stmt := ConStatement{Symbol: symbol}
 
-	if tok, _ := p.scanIgnoreWhitespace(); tok == EOL {
+	if lexeme := p.scanIgnoreWhitespace(); lexeme.Tok == EOL {
 		return stmt, nil
 	}
 	p.unscan()
 
-	if tok, lit := p.scanIgnoreWhitespace(); tok == NUMBER {
-		stmt.Address = lit
+	if lexeme := p.scanIgnoreWhitespace(); lexeme.Tok == NUMBER {
+		stmt.Address = lexeme.Lit
 	}
 
-	if tok, lit := p.scan(); tok != EOL {
-		return stmt, fmt.Errorf("Expected EOL (%v, %v)", tok, lit)
+	if lexeme := p.scan(); lexeme.Tok != EOL {
+		return stmt, parseError("Expected EOL", lexeme)
 	}
 
 	return stmt, nil
 }
 
 func (p *Parser) parseSymbol() *Symbol {
-	if tok, lit := p.scan(); tok == STRING {
-		return &Symbol{Name: lit}
+	if lexeme := p.scan(); lexeme.Tok == STRING {
+		return &Symbol{Name: lexeme.Lit}
 	}
 
 	p.unscan()
@@ -170,36 +165,39 @@ func (p *Parser) parseSymbol() *Symbol {
 }
 
 func (p *Parser) parseOpCode() (string, error) {
-	tok, lit := p.scanIgnoreWhitespace()
-	if tok != STRING {
-		return "", fmt.Errorf("Expected OP code (%v, %v)", tok, lit)
+	lexeme := p.scanIgnoreWhitespace()
+	if lexeme.Tok != STRING {
+		return "", parseError("Expected OP code", lexeme)
 	}
 
-	return lit, nil
+	return lexeme.Lit, nil
 }
 
-func (p *Parser) scanIgnoreWhitespace() (tok Token, lit string) {
-	tok, lit = p.scan()
-	if tok == WS {
-		tok, lit = p.scan()
+func (p *Parser) scanIgnoreWhitespace() (lexeme Lexeme) {
+	lexeme = p.scan()
+	if lexeme.Tok == WS {
+		lexeme = p.scan()
 	}
 	return
 }
 
-func (p *Parser) scan() (tok Token, lit string) {
+func (p *Parser) scan() (lexeme Lexeme) {
 	if p.buf.len > 0 {
 		vals := p.buf.vals
-		pt := vals[len(vals)-p.buf.len]
+		lexeme = vals[len(vals)-p.buf.len]
 		p.buf.len--
-		return pt.tok, pt.lit
+		return
 	}
 
-	tok, lit = p.s.Scan()
-	p.buf.vals = append(p.buf.vals, pToken{tok, lit})
-
+	lexeme = p.s.Scan()
+	p.buf.vals = append(p.buf.vals, lexeme)
 	return
 }
 
 func (p *Parser) unscan() {
 	p.buf.len++
+}
+
+func parseError(err string, lexeme Lexeme) error {
+	return fmt.Errorf("%v: %v (%v:%v)", err, lexeme.Lit, lexeme.Line, lexeme.Col)
 }

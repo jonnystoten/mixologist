@@ -56,25 +56,25 @@ func lex(filename string) {
 
 	var debug string
 	for {
-		tok, lit := scanner.Scan()
+		lexeme := scanner.Scan()
 
-		if tok == shake.EOF {
+		if lexeme.Tok == shake.EOF {
 			log.Println("[EOF]")
 			debug = ""
 			break
 		}
 
-		if tok == shake.ILLEGAL {
-			log.Println("ERROR", lit)
+		if lexeme.Tok == shake.ILLEGAL {
+			log.Printf("ERROR: %v (%v:%v)", lexeme.Lit, lexeme.Line, lexeme.Col)
 			debug = ""
 			break
 		}
 
-		if tok == shake.EOL {
+		if lexeme.Tok == shake.EOL {
 			log.Printf("%v[EOL]", debug)
 			debug = ""
 		} else {
-			debug += fmt.Sprintf("[%v]", lit)
+			debug += fmt.Sprintf("[%v]", lexeme.Lit)
 		}
 	}
 }
