@@ -24,28 +24,29 @@ func NewAssembler() *Assembler {
 
 func (a *Assembler) Assemble(program *Program) ([]mix.Word, error) {
 	for _, stmt := range program.Statements {
-		symbol := stmt.Symbol()
-		if symbol != nil {
-			a.symbolTable[symbol.Name] = a.locationCounter
-		}
-		switch s := stmt.(type) {
+		switch stmt := stmt.(type) {
 		case MixStatement:
-			instruction, err := a.assembleMixStatement(s)
+			a.addSymbol(stmt, a.locationCounter)
+			instruction, err := a.assembleMixStatement(stmt)
 			if err != nil {
 				return nil, err
 			}
 			word := mix.EncodeInstruction(instruction)
 			a.words[a.locationCounter] = word
-			log.Printf("%v: %v", a.locationCounter, word)
 			a.locationCounter++
 		case OrigStatement:
-			address := a.getValue(s.Address)
+			a.addSymbol(stmt, a.locationCounter)
+			address := a.getValue(stmt.Address)
+			log.Printf("address: %v", address)
 			a.locationCounter = address
+		case EquStatement:
+			address := a.getValue(stmt.Address)
+			a.addSymbol(stmt, address)
 		case ConStatement:
-			address := a.getValue(s.Address)
+			a.addSymbol(stmt, a.locationCounter)
+			address := a.getValue(stmt.Address)
 			word := mix.NewWord(address)
 			a.words[a.locationCounter] = word
-			log.Printf("%v: %v", a.locationCounter, word)
 			a.locationCounter++
 		}
 	}
@@ -62,14 +63,17 @@ func (a *Assembler) assembleMixStatement(stmt MixStatement) (mix.Instruction, er
 	instruction := mix.Instruction{OpCode: opInfo.OpCode, FieldSpec: opInfo.DefaultFS}
 
 	address := a.getValue(stmt.APart)
-	sign := mix.Positive
-	if address < 0 {
-		sign = mix.Negative
-		address = address * -1
-	}
-	instruction.Address = mix.NewAddress(sign, uint16(address))
+	instruction.Address = mix.NewAddress(address)
 
 	return instruction, nil
+}
+
+func (a *Assembler) addSymbol(stmt Statement, value int) {
+	symbol := stmt.Symbol()
+	if symbol != nil {
+		a.symbolTable[symbol.Name] = value
+		a.fixupFutureRefs(symbol.Name)
+	}
 }
 
 func (a *Assembler) addFutureRef(name string) {
@@ -79,6 +83,26 @@ func (a *Assembler) addFutureRef(name string) {
 	} else {
 		a.futureRefTable[name] = append(refs, a.locationCounter)
 	}
+}
+
+func (a *Assembler) fixupFutureRefs(name string) {
+	log.Printf("Fixing up future refs to '%v'", name)
+	refs, ok := a.futureRefTable[name]
+	if !ok {
+		return
+	}
+
+	target := a.symbolTable[name]
+
+	for _, ref := range refs {
+		log.Printf("Got a ref to '%v' at %v", name, ref)
+		address := mix.NewAddress(target)
+		a.words[ref].Sign = address.Sign
+		a.words[ref].Bytes[0] = address.Value[0]
+		a.words[ref].Bytes[1] = address.Value[1]
+	}
+
+	delete(a.futureRefTable, name)
 }
 
 func (a *Assembler) getValue(node Node) int {
@@ -96,6 +120,7 @@ func (a *Assembler) visitNumber(number Number) int {
 func (a *Assembler) visitSymbol(symbol Symbol) int {
 	value, ok := a.symbolTable[symbol.Name]
 	if !ok {
+		log.Printf("Adding future ref to '%v'", symbol.Name)
 		a.addFutureRef(symbol.Name)
 		return 0
 	}
@@ -134,7 +159,7 @@ func (a *Assembler) visitExpression(expression Expression) int {
 }
 
 func (a *Assembler) visitWValue(wVal WValue) int {
-	return 2
+	return a.getValue(wVal.Parts[0].Exp) // TODO: make this work properly
 }
 
 func (a *Assembler) visitLiteralConstant(literal LiteralConstant) int {

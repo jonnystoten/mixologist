@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 
+	"jonnystoten.com/mixologist/mix"
 	"jonnystoten.com/mixologist/shake"
 )
 
@@ -33,7 +34,10 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	for _, word := range words {
+	for i, word := range words {
+		if word != (mix.Word{}) {
+			log.Printf("%v: %v", i, word)
+		}
 		err = binary.Write(os.Stdout, binary.LittleEndian, word)
 		if err != nil {
 			log.Fatalln(err)

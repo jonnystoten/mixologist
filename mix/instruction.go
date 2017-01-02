@@ -5,7 +5,12 @@ type Address struct {
 	Value [2]byte
 }
 
-func NewAddress(sign Sign, value uint16) Address {
+func NewAddress(value int) Address {
+	sign := Positive
+	if value < 0 {
+		sign = Negative
+		value = value * -1
+	}
 	return Address{Sign: sign, Value: [2]byte{byte(value / 64), byte(value % 64)}}
 }
 
