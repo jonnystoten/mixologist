@@ -51,19 +51,22 @@ func assembleMixStatement(stmt MixStatement) (mix.Instruction, error) {
 
 	instruction := mix.Instruction{OpCode: opInfo.OpCode, FieldSpec: opInfo.DefaultFS}
 
-	if stmt.Address != "" {
-		address, err := strconv.Atoi(stmt.Address)
-		if err != nil {
-			return mix.Instruction{}, err
-		}
-
-		sign := mix.Positive
-		if address < 0 {
-			sign = mix.Negative
-			address = address * -1
-		}
-		instruction.Address = mix.NewAddress(sign, uint16(address))
+	var address int
+	switch aPart := stmt.APart.(type) {
+	case Nothing:
+		address = 0
+	case Number:
+		address = aPart.Value
+	default:
+		return mix.Instruction{}, fmt.Errorf("No value for A-part")
 	}
+
+	sign := mix.Positive
+	if address < 0 {
+		sign = mix.Negative
+		address = address * -1
+	}
+	instruction.Address = mix.NewAddress(sign, uint16(address))
 
 	return instruction, nil
 }

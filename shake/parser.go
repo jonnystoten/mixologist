@@ -4,14 +4,22 @@ import (
 	"fmt"
 	"io"
 
+	"strconv"
+
 	"jonnystoten.com/mixologist/mix"
 )
 
 type Node interface {
 }
 
+type Nothing struct{}
+
 type Symbol struct {
 	Name string
+}
+
+type Number struct {
+	Value int
 }
 
 type Statement interface {
@@ -20,8 +28,14 @@ type Statement interface {
 
 type MixStatement struct {
 	Statement
+	Symbol *Symbol
+	Op     string
+	APart  Node
+}
+
+type EquStatement struct {
+	Statement
 	Symbol  *Symbol
-	Op      string
 	Address string
 }
 
@@ -85,7 +99,7 @@ func (p *Parser) parseStatement() (Statement, error) {
 
 	switch op {
 	case "EQU":
-		return nil, fmt.Errorf("%v is unsupported", op)
+		return p.parseEquStatement(symbol)
 	case "ORIG":
 		return p.parseOrigStatement(symbol)
 	case "CON":
@@ -106,16 +120,37 @@ func (p *Parser) parseMixStatement(symbol *Symbol, op string) (MixStatement, err
 		return stmt, fmt.Errorf("Unknown OP code (%v)", op)
 	}
 
-	if lexeme := p.scanIgnoreWhitespace(); lexeme.Tok == EOL {
-		return stmt, nil
+	aPart, err := p.parseAPart()
+	if err != nil {
+		return stmt, err
+	}
+	stmt.APart = aPart
+
+	if lexeme := p.scanIgnoreWhitespace(); lexeme.Tok != EOL {
+		return stmt, parseError("Expected EOL", lexeme)
+	}
+
+	return stmt, nil
+}
+
+func (p *Parser) parseAPart() (Node, error) {
+	if lexeme := p.scanIgnoreWhitespace(); lexeme.Tok == NUMBER {
+		value, _ := strconv.Atoi(lexeme.Lit) // cannot error
+		return Number{Value: value}, nil
 	}
 	p.unscan()
+
+	return Nothing{}, nil
+}
+
+func (p *Parser) parseEquStatement(symbol *Symbol) (EquStatement, error) {
+	stmt := EquStatement{Symbol: symbol}
 
 	if lexeme := p.scanIgnoreWhitespace(); lexeme.Tok == NUMBER {
 		stmt.Address = lexeme.Lit
 	}
 
-	if lexeme := p.scan(); lexeme.Tok != EOL {
+	if lexeme := p.scanIgnoreWhitespace(); lexeme.Tok != EOL {
 		return stmt, parseError("Expected EOL", lexeme)
 	}
 
@@ -129,7 +164,7 @@ func (p *Parser) parseOrigStatement(symbol *Symbol) (OrigStatement, error) {
 		stmt.Address = lexeme.Lit
 	}
 
-	if lexeme := p.scan(); lexeme.Tok != EOL {
+	if lexeme := p.scanIgnoreWhitespace(); lexeme.Tok != EOL {
 		return stmt, parseError("Expected EOL", lexeme)
 	}
 
@@ -148,7 +183,7 @@ func (p *Parser) parseConStatement(symbol *Symbol) (ConStatement, error) {
 		stmt.Address = lexeme.Lit
 	}
 
-	if lexeme := p.scan(); lexeme.Tok != EOL {
+	if lexeme := p.scanIgnoreWhitespace(); lexeme.Tok != EOL {
 		return stmt, parseError("Expected EOL", lexeme)
 	}
 
