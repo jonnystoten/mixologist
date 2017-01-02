@@ -3,7 +3,6 @@ package shake
 import (
 	"fmt"
 	"io"
-	"log"
 
 	"strconv"
 
@@ -29,6 +28,10 @@ type Symbol struct {
 
 type Number struct {
 	Value int
+}
+
+type LiteralConstant struct {
+	Value Node
 }
 
 type Expression struct {
@@ -179,6 +182,23 @@ func (p *Parser) parseAPart() (Node, error) {
 		return exp, nil
 	}
 
+	if quote := p.scan(); quote.Tok == LITERALQUOTE {
+		exp, err := p.parseExpression()
+		if err != nil {
+			return nil, err
+		}
+		if exp == nil {
+			return nil, parseError("expected expression after literal quote", quote)
+		}
+
+		if endQuote := p.scan(); endQuote.Tok != LITERALQUOTE {
+			return nil, parseError("expected closing literal quote", endQuote)
+		}
+
+		return LiteralConstant{exp}, nil
+	}
+	p.unscan()
+
 	return Nothing{}, nil
 }
 
@@ -300,7 +320,6 @@ func (p *Parser) parseAtom() Node {
 }
 
 func (p *Parser) parseEquStatement(symbol *Symbol) (EquStatement, error) {
-	log.Println("EQU parse")
 	stmt := EquStatement{Symbol: symbol}
 
 	p.swallowWhitespace()
