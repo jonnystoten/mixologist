@@ -109,6 +109,11 @@ type ConStatement struct {
 	Address Node
 }
 
+type AlfStatement struct {
+	symbol   *Symbol
+	CharCode string
+}
+
 type EndStatement struct {
 	symbol  *Symbol
 	Address Node
@@ -118,6 +123,7 @@ func (s MixStatement) Symbol() *Symbol  { return s.symbol }
 func (s EquStatement) Symbol() *Symbol  { return s.symbol }
 func (s OrigStatement) Symbol() *Symbol { return s.symbol }
 func (s ConStatement) Symbol() *Symbol  { return s.symbol }
+func (s AlfStatement) Symbol() *Symbol  { return s.symbol }
 func (s EndStatement) Symbol() *Symbol  { return s.symbol }
 
 type Program struct {
@@ -174,7 +180,7 @@ func (p *Parser) parseStatement() (Statement, error) {
 	case "CON":
 		return p.parseConStatement(symbol)
 	case "ALF":
-		return nil, fmt.Errorf("%v is unsupported", op)
+		return p.parseAlfStatement(symbol)
 	case "END":
 		return p.parseEndStatement(symbol)
 	default:
@@ -445,6 +451,25 @@ func (p *Parser) parseConStatement(symbol *Symbol) (ConStatement, error) {
 	}
 
 	stmt.Address = wval
+
+	if lexeme := p.scanIgnoreWhitespace(); lexeme.Tok != EOL {
+		return stmt, parseError("Expected EOL", lexeme)
+	}
+
+	return stmt, nil
+}
+
+func (p *Parser) parseAlfStatement(symbol *Symbol) (AlfStatement, error) {
+	stmt := AlfStatement{symbol: symbol}
+
+	p.swallowWhitespace()
+
+	lexeme := p.scan()
+	if lexeme.Tok != STRINGLITERAL {
+		return stmt, parseError("Expected string literal", lexeme)
+	}
+
+	stmt.CharCode = lexeme.Lit
 
 	if lexeme := p.scanIgnoreWhitespace(); lexeme.Tok != EOL {
 		return stmt, parseError("Expected EOL", lexeme)

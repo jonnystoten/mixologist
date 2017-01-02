@@ -48,6 +48,10 @@ func (a *Assembler) Assemble(program *Program) ([]mix.Word, error) {
 			word := mix.NewWord(address)
 			a.words[a.locationCounter] = word
 			a.locationCounter++
+		case AlfStatement:
+			word := a.assembleAlfStatement(stmt)
+			a.words[a.locationCounter] = word
+			a.locationCounter++
 		}
 	}
 
@@ -166,6 +170,23 @@ func (a *Assembler) visitLiteralConstant(literal LiteralConstant) int {
 	_ = a.getValue(literal.Value)
 	// TODO: add future ref
 	return 0
+}
+
+func (a *Assembler) assembleAlfStatement(stmt AlfStatement) mix.Word {
+	word := mix.Word{}
+
+	charcode := stmt.CharCode
+	inner := charcode[1 : len(charcode)-1]
+
+	index := 0 // can't use index from range because unicode
+	for _, char := range inner {
+		log.Printf("%v: %v", index, char)
+		code := mix.CharCodeTable[char]
+		word.Bytes[index] = code
+		index++
+	}
+
+	return word
 }
 
 func (a *Assembler) assembleWValue(wValue WValue) mix.Word {

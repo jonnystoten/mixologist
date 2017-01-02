@@ -56,7 +56,7 @@ func (c *Computer) Execute(instruction mix.Instruction) {
 	}
 }
 
-func (c *Computer) getIndexedAddressValue(i mix.Instruction) uint16 {
+func (c *Computer) getIndexedAddressValue(i mix.Instruction) int {
 	value := i.Address.GetValue()
 	index := i.IndexSpec
 	indexValue := c.Index[index].GetValue()

@@ -88,6 +88,16 @@ func ApplyFieldSpec(word Word, fieldSpec byte) Word {
 	return newWord
 }
 
+func NewFieldSpec(left, right byte) byte {
+	return left*8 + right
+}
+
+func DecodeFieldSpec(fieldSpec byte) (left, right byte) {
+	left = fieldSpec / 8
+	right = fieldSpec % 8
+	return
+}
+
 func CastAsAddress(word Word) Address {
 	return Address{
 		Sign:  word.Sign,
