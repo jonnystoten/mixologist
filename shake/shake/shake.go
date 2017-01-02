@@ -27,7 +27,8 @@ func main() {
 	log.Println()
 
 	log.Println("ASSEMBLE:")
-	words, err := shake.Assemble(prog)
+	assembler := shake.NewAssembler()
+	words, err := assembler.Assemble(prog)
 	if err != nil {
 		log.Fatalln(err)
 	}

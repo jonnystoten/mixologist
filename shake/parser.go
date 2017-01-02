@@ -10,43 +10,84 @@ import (
 )
 
 type Node interface {
+	Accept(NodeVisitor) int
+}
+
+type NodeVisitor interface {
+	visitNothing(nothing Nothing) int
+	visitNumber(number Number) int
+	visitSymbol(symbol Symbol) int
+	visitAsterisk(asterisk Asterisk) int
+	visitExpression(expression Expression) int
+	visitWValue(wValue WValue) int
+	visitLiteralConstant(literal LiteralConstant) int
 }
 
 type Nothing struct{}
 
-type Plus struct{}
-type Minus struct{}
+func (n Nothing) Accept(v NodeVisitor) int {
+	return v.visitNothing(n)
+}
+
 type Asterisk struct{}
 
-type Operator struct {
-	Type string
+func (a Asterisk) Accept(v NodeVisitor) int {
+	return v.visitAsterisk(a)
 }
 
 type Symbol struct {
 	Name string
 }
 
+func (s Symbol) Accept(v NodeVisitor) int {
+	return v.visitSymbol(s)
+}
+
 type Number struct {
 	Value int
+}
+
+func (n Number) Accept(v NodeVisitor) int {
+	return v.visitNumber(n)
 }
 
 type LiteralConstant struct {
 	Value Node
 }
 
+func (lc LiteralConstant) Accept(v NodeVisitor) int {
+	return v.visitLiteralConstant(lc)
+}
+
 type Expression struct {
 	Left     *Node
-	Operator Node
+	Operator Token
 	Right    Node
 }
 
+func (e Expression) Accept(v NodeVisitor) int {
+	return v.visitExpression(e)
+}
+
+type WValue struct {
+	Parts []WValuePart
+}
+
+func (w WValue) Accept(v NodeVisitor) int {
+	return v.visitWValue(w)
+}
+
+type WValuePart struct {
+	Exp   Node
+	FPart Node
+}
+
 type Statement interface {
-	Node
+	Symbol() *Symbol
 }
 
 type MixStatement struct {
-	Statement
-	Symbol    *Symbol
+	symbol    *Symbol
 	Op        string
 	APart     Node
 	IndexPart Node
@@ -54,28 +95,30 @@ type MixStatement struct {
 }
 
 type EquStatement struct {
-	Statement
-	Symbol  *Symbol
+	symbol  *Symbol
 	Address Node
 }
 
 type OrigStatement struct {
-	Statement
-	Symbol  *Symbol
-	Address string
+	symbol  *Symbol
+	Address Node
 }
 
 type ConStatement struct {
-	Statement
-	Symbol  *Symbol
-	Address string
+	symbol  *Symbol
+	Address Node
 }
 
 type EndStatement struct {
-	Statement
-	Symbol  *Symbol
-	Address string
+	symbol  *Symbol
+	Address Node
 }
+
+func (s MixStatement) Symbol() *Symbol  { return s.symbol }
+func (s EquStatement) Symbol() *Symbol  { return s.symbol }
+func (s OrigStatement) Symbol() *Symbol { return s.symbol }
+func (s ConStatement) Symbol() *Symbol  { return s.symbol }
+func (s EndStatement) Symbol() *Symbol  { return s.symbol }
 
 type Program struct {
 	Statements []Statement
@@ -140,7 +183,7 @@ func (p *Parser) parseStatement() (Statement, error) {
 }
 
 func (p *Parser) parseMixStatement(symbol *Symbol, op string) (MixStatement, error) {
-	stmt := MixStatement{Symbol: symbol, Op: op}
+	stmt := MixStatement{symbol: symbol, Op: op}
 
 	if _, ok := mix.OperationTable[op]; !ok {
 		return stmt, fmt.Errorf("Unknown OP code (%v)", op)
@@ -237,6 +280,51 @@ func (p *Parser) parseFPart() (Node, error) {
 	return Nothing{}, nil
 }
 
+func (p *Parser) parseWValue() (Node, error) {
+	part, err := p.parseWValuePart()
+	if err != nil {
+		return nil, err
+	}
+	if part == nil {
+		return nil, nil
+	}
+
+	parts := []WValuePart{*part}
+
+	return p.parseWValueTail(parts)
+}
+
+func (p *Parser) parseWValuePart() (*WValuePart, error) {
+	exp, err := p.parseExpression()
+	if err != nil {
+		return nil, err
+	}
+	if exp == nil {
+		return nil, nil
+	}
+	fPart, err := p.parseFPart()
+	if err != nil {
+		return nil, err
+	}
+	if fPart == nil {
+		return nil, nil
+	}
+
+	return &WValuePart{exp, fPart}, nil
+}
+
+func (p *Parser) parseWValueTail(head []WValuePart) (Node, error) {
+	nextPart, err := p.parseWValuePart()
+	if err != nil {
+		return nil, err
+	}
+	if nextPart == nil {
+		return WValue{Parts: head}, nil
+	}
+
+	return p.parseWValueTail(append(head, *nextPart))
+}
+
 func (p *Parser) parseExpression() (Node, error) {
 	var exp Node
 
@@ -252,29 +340,14 @@ func (p *Parser) parseExpression() (Node, error) {
 				return nil, parseError(fmt.Sprintf("Expected atom after %v", lexeme.Lit), lexeme)
 			}
 
-			var operator Node
-			if lexeme.Tok == PLUS {
-				operator = Plus{}
-			} else {
-				operator = Minus{}
-			}
-
-			exp = Expression{Operator: operator, Right: atom}
+			exp = Expression{Operator: lexeme.Tok, Right: atom}
 		} else {
 			p.unscan()
 			return nil, nil
 		}
 	}
 
-	tail, err := p.parseExpressionTail(exp)
-	if err != nil {
-		return nil, err
-	}
-	if tail != nil {
-		return tail, nil
-	}
-
-	return exp, nil
+	return p.parseExpressionTail(exp)
 }
 
 func (p *Parser) parseExpressionTail(head Node) (Node, error) {
@@ -286,19 +359,11 @@ func (p *Parser) parseExpressionTail(head Node) (Node, error) {
 			p.unscan()
 			return nil, parseError(fmt.Sprintf("Expected atom after %v", lexeme.Lit), lexeme)
 		}
-		exp := Expression{Left: &head, Operator: Plus{}, Right: atom} // TODO: hard-coded plus
-		full, err := p.parseExpressionTail(exp)
-		if err != nil {
-			p.unscan()
-			return nil, err
-		}
-		if full != nil {
-			return full, nil
-		}
-		return exp, nil
+		exp := Expression{Left: &head, Operator: lexeme.Tok, Right: atom}
+		return p.parseExpressionTail(exp)
 	default:
 		p.unscan()
-		return nil, nil
+		return head, nil
 	}
 }
 
@@ -320,20 +385,20 @@ func (p *Parser) parseAtom() Node {
 }
 
 func (p *Parser) parseEquStatement(symbol *Symbol) (EquStatement, error) {
-	stmt := EquStatement{Symbol: symbol}
+	stmt := EquStatement{symbol: symbol}
 
 	p.swallowWhitespace()
 
-	exp, err := p.parseExpression()
+	wval, err := p.parseWValue()
 	if err != nil {
 		return stmt, err
 	}
 
-	if exp == nil {
-		return stmt, fmt.Errorf("Expected expression (%v:%v)", p.s.line, p.s.col)
+	if wval == nil {
+		return stmt, fmt.Errorf("Expected W-value (%v:%v)", p.s.line, p.s.col)
 	}
 
-	stmt.Address = exp
+	stmt.Address = wval
 
 	if lexeme := p.scanIgnoreWhitespace(); lexeme.Tok != EOL {
 		return stmt, parseError("Expected EOL", lexeme)
@@ -343,11 +408,20 @@ func (p *Parser) parseEquStatement(symbol *Symbol) (EquStatement, error) {
 }
 
 func (p *Parser) parseOrigStatement(symbol *Symbol) (OrigStatement, error) {
-	stmt := OrigStatement{Symbol: symbol}
+	stmt := OrigStatement{symbol: symbol}
 
-	if lexeme := p.scanIgnoreWhitespace(); lexeme.Tok == NUMBER {
-		stmt.Address = lexeme.Lit
+	p.swallowWhitespace()
+
+	wval, err := p.parseWValue()
+	if err != nil {
+		return stmt, err
 	}
+
+	if wval == nil {
+		return stmt, fmt.Errorf("Expected W-value (%v:%v)", p.s.line, p.s.col)
+	}
+
+	stmt.Address = wval
 
 	if lexeme := p.scanIgnoreWhitespace(); lexeme.Tok != EOL {
 		return stmt, parseError("Expected EOL", lexeme)
@@ -357,16 +431,20 @@ func (p *Parser) parseOrigStatement(symbol *Symbol) (OrigStatement, error) {
 }
 
 func (p *Parser) parseConStatement(symbol *Symbol) (ConStatement, error) {
-	stmt := ConStatement{Symbol: symbol}
+	stmt := ConStatement{symbol: symbol}
 
-	if lexeme := p.scanIgnoreWhitespace(); lexeme.Tok == EOL {
-		return stmt, nil
-	}
-	p.unscan()
+	p.swallowWhitespace()
 
-	if lexeme := p.scanIgnoreWhitespace(); lexeme.Tok == NUMBER {
-		stmt.Address = lexeme.Lit
+	wval, err := p.parseWValue()
+	if err != nil {
+		return stmt, err
 	}
+
+	if wval == nil {
+		return stmt, fmt.Errorf("Expected W-value (%v:%v)", p.s.line, p.s.col)
+	}
+
+	stmt.Address = wval
 
 	if lexeme := p.scanIgnoreWhitespace(); lexeme.Tok != EOL {
 		return stmt, parseError("Expected EOL", lexeme)
@@ -376,16 +454,20 @@ func (p *Parser) parseConStatement(symbol *Symbol) (ConStatement, error) {
 }
 
 func (p *Parser) parseEndStatement(symbol *Symbol) (EndStatement, error) {
-	stmt := EndStatement{Symbol: symbol}
+	stmt := EndStatement{symbol: symbol}
 
-	if lexeme := p.scanIgnoreWhitespace(); lexeme.Tok == EOL {
-		return stmt, nil
-	}
-	p.unscan()
+	p.swallowWhitespace()
 
-	if lexeme := p.scanIgnoreWhitespace(); lexeme.Tok == NUMBER {
-		stmt.Address = lexeme.Lit
+	wval, err := p.parseWValue()
+	if err != nil {
+		return stmt, err
 	}
+
+	if wval == nil {
+		return stmt, fmt.Errorf("Expected W-value (%v:%v)", p.s.line, p.s.col)
+	}
+
+	stmt.Address = wval
 
 	if lexeme := p.scanIgnoreWhitespace(); lexeme.Tok != EOL {
 		return stmt, parseError("Expected EOL", lexeme)
