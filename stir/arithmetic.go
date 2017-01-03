@@ -10,8 +10,14 @@ func (op AddOp) Execute(c *Computer) {
 
 	sum := acc.Value() + word.Value()
 
-	// TODO: check for overflow
-	result := mix.NewWord(sum)
+	var result mix.Word
+	if mix.FitsInWord(sum) {
+		result = mix.NewWord(sum)
+	} else {
+		c.Overflow = true
+		result = mix.NewWordWithOverflow(sum)
+	}
+
 	c.Accumulator = result
 }
 
@@ -23,8 +29,14 @@ func (op SubOp) Execute(c *Computer) {
 
 	sum := acc.Value() - word.Value()
 
-	// TODO: check for overflow
-	result := mix.NewWord(sum)
+	var result mix.Word
+	if mix.FitsInWord(sum) {
+		result = mix.NewWord(sum)
+	} else {
+		c.Overflow = true
+		result = mix.NewWordWithOverflow(sum)
+	}
+
 	c.Accumulator = result
 }
 
@@ -58,7 +70,7 @@ func (op DivOp) Execute(c *Computer) {
 
 	acc := c.Accumulator
 	if abs(acc.Value()) >= abs(word.Value()) {
-		//overflow
+		c.Overflow = true
 		return
 	}
 

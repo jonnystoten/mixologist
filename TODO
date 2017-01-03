@@ -1,11 +1,11 @@
 stir TODO:
- - overflow
  - comparison ops
  - jump ops
  - misc ops
  - I/O
  - conversion ops
  - timing
+ - decimal bytes
 
 shake TODO:
  - literal constants

@@ -13,10 +13,30 @@ type Word struct {
 }
 
 func NewWord(value int) Word {
+	if !FitsInWord(value) {
+		panic("word overflow!")
+	}
+
+	return newWordImpl(value, false)
+}
+
+func NewWordWithOverflow(value int) Word {
+	if FitsInWord(value) {
+		panic("NewWordWithOverflow is only for overflowing words!")
+	}
+
+	return newWordImpl(value, true)
+}
+
+func newWordImpl(value int, allowOverflow bool) Word {
 	sign := Positive
 	if value < 0 {
 		sign = Negative
 		value *= -1
+	}
+
+	if allowOverflow {
+		value = value - pow(64, 5)
 	}
 
 	bytes := [5]byte{}
@@ -28,6 +48,11 @@ func NewWord(value int) Word {
 	}
 
 	return Word{Sign: sign, Bytes: bytes}
+}
+
+func FitsInWord(value int) bool {
+	max := pow(64, 5) - 1
+	return value <= max
 }
 
 func NewWordFromAddress(address Address) Word {

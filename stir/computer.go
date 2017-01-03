@@ -10,6 +10,7 @@ type Computer struct {
 	JumpAddress    mix.Address
 	Memory         [4000]mix.Word
 	ProgramCounter int
+	Overflow       bool
 }
 
 func NewComputer() *Computer {

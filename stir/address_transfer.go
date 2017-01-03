@@ -40,19 +40,31 @@ func (op IncreaseOp) Execute(c *Computer) {
 	case op.OpCode == mix.INCA:
 		acc := c.Accumulator
 		sum := acc.Value() + word.Value()
-		c.Accumulator = mix.NewWord(sum)
+		var result mix.Word
+		if mix.FitsInWord(sum) {
+			result = mix.NewWord(sum)
+		} else {
+			c.Overflow = true
+			result = mix.NewWordWithOverflow(sum)
+		}
+		c.Accumulator = result
 	case op.OpCode == mix.INCX:
 		ext := c.Extension
 		sum := ext.Value() + word.Value()
-		c.Extension = mix.NewWord(sum)
+		var result mix.Word
+		if mix.FitsInWord(sum) {
+			result = mix.NewWord(sum)
+		} else {
+			c.Overflow = true
+			result = mix.NewWordWithOverflow(sum)
+		}
+		c.Extension = result
 	case mix.INC1 <= op.OpCode && op.OpCode <= mix.INC6:
 		index := op.OpCode - mix.INC1
 		i := c.Index[index]
 		sum := i.Value() + word.Value()
 		c.Index[index] = mix.NewAddress(sum)
 	}
-
-	// TODO: check for overflow
 }
 
 // TODO: maybe merge this with IncreaseOp
@@ -67,17 +79,29 @@ func (op DecreaseOp) Execute(c *Computer) {
 	case op.OpCode == mix.DECA:
 		acc := c.Accumulator
 		sum := acc.Value() - word.Value()
-		c.Accumulator = mix.NewWord(sum)
+		var result mix.Word
+		if mix.FitsInWord(sum) {
+			result = mix.NewWord(sum)
+		} else {
+			c.Overflow = true
+			result = mix.NewWordWithOverflow(sum)
+		}
+		c.Accumulator = result
 	case op.OpCode == mix.DECX:
 		ext := c.Extension
 		sum := ext.Value() - word.Value()
-		c.Extension = mix.NewWord(sum)
+		var result mix.Word
+		if mix.FitsInWord(sum) {
+			result = mix.NewWord(sum)
+		} else {
+			c.Overflow = true
+			result = mix.NewWordWithOverflow(sum)
+		}
+		c.Extension = result
 	case mix.DEC1 <= op.OpCode && op.OpCode <= mix.DEC6:
 		index := op.OpCode - mix.DEC1
 		i := c.Index[index]
 		sum := i.Value() - word.Value()
 		c.Index[index] = mix.NewAddress(sum)
 	}
-
-	// TODO: check for overflow
 }
