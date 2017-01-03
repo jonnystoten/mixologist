@@ -64,10 +64,17 @@ func (a *Assembler) assembleMixStatement(stmt MixStatement) (mix.Instruction, er
 		return mix.Instruction{}, fmt.Errorf("Unknown op code: %v", stmt.Op)
 	}
 
-	instruction := mix.Instruction{OpCode: opInfo.OpCode, FieldSpec: opInfo.DefaultFS}
+	instruction := mix.Instruction{OpCode: opInfo.OpCode}
 
 	address := a.getValue(stmt.APart)
 	instruction.Address = mix.NewAddress(address)
+
+	switch stmt.FPart.(type) {
+	case Nothing:
+		instruction.FieldSpec = opInfo.DefaultFS
+	default:
+		instruction.FieldSpec = byte(a.getValue(stmt.FPart))
+	}
 
 	return instruction, nil
 }
