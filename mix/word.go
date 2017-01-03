@@ -37,6 +37,14 @@ func NewWordFromAddress(address Address) Word {
 	}
 }
 
+func (w *Word) Value() (value int) {
+	for i := 0; i < 5; i++ {
+		base := pow(64, i)
+		value += base * int(w.Bytes[4-i])
+	}
+	return
+}
+
 func ToggleSign(word Word) Word {
 	if word.Sign == Positive {
 		word.Sign = Negative

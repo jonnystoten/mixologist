@@ -1,7 +1,7 @@
 package stir
 
 import (
-	"log"
+	"fmt"
 
 	"jonnystoten.com/mixologist/mix"
 )
@@ -19,6 +19,10 @@ func NewOperation(instruction mix.Instruction) Operation {
 	switch {
 	case instruction.OpCode == mix.NOP:
 		return NoOp{instruction}
+	case instruction.OpCode == mix.ADD:
+		return AddOp{instruction}
+	case instruction.OpCode == mix.SUB:
+		return SubOp{instruction}
 	case instruction.OpCode == mix.HLT && instruction.FieldSpec == 2:
 		return HaltOp{instruction}
 	case mix.LDA <= instruction.OpCode && instruction.OpCode <= mix.LDXN:
@@ -26,8 +30,6 @@ func NewOperation(instruction mix.Instruction) Operation {
 	case mix.STA <= instruction.OpCode && instruction.OpCode <= mix.STZ:
 		return StoreOp{instruction}
 	default:
-		log.Fatalf("unimplemented op code %v! Full instruction: %+v", instruction.OpCode, instruction)
+		panic(fmt.Sprintf("unimplemented op code %v! Full instruction: %+v", instruction.OpCode, instruction))
 	}
-
-	panic("wtf")
 }
