@@ -1,6 +1,10 @@
 package stir
 
-import "jonnystoten.com/mixologist/mix"
+import (
+	"log"
+
+	"jonnystoten.com/mixologist/mix"
+)
 
 type Computer struct {
 	Running        bool
@@ -30,6 +34,8 @@ func (c *Computer) Run() {
 
 func (c *Computer) Execute(instruction mix.Instruction) {
 	switch {
+	case instruction.OpCode == mix.NOP:
+		// do nothing
 	case instruction.OpCode == mix.HLT:
 		c.Running = false
 	case instruction.OpCode == mix.LDA:
@@ -53,6 +59,8 @@ func (c *Computer) Execute(instruction mix.Instruction) {
 		word := mix.ApplyFieldSpec(c.Memory[c.getIndexedAddressValue(instruction)], instruction.FieldSpec)
 		word = mix.ToggleSign(word)
 		c.Extension = word
+	default:
+		log.Fatalf("unimplemented OP '%v'! Full instruction: %+v", instruction.OpCode, instruction)
 	}
 }
 
