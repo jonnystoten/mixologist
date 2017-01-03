@@ -17,3 +17,10 @@ func NewAddress(value int) Address {
 func (a *Address) GetValue() int {
 	return int(a.Value[0])*64 + int(a.Value[1])
 }
+
+func CastAsAddress(word Word) Address {
+	return Address{
+		Sign:  word.Sign,
+		Value: [2]byte{word.Bytes[3], word.Bytes[4]},
+	}
+}

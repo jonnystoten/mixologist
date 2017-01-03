@@ -30,6 +30,13 @@ func NewWord(value int) Word {
 	return Word{Sign: sign, Bytes: bytes}
 }
 
+func NewWordFromAddress(address Address) Word {
+	return Word{
+		Sign:  address.Sign,
+		Bytes: [5]byte{0, 0, 0, address.Value[0], address.Value[1]},
+	}
+}
+
 func ToggleSign(word Word) Word {
 	if word.Sign == Positive {
 		word.Sign = Negative
@@ -71,13 +78,6 @@ func DecodeFieldSpec(fieldSpec byte) (left, right byte) {
 	left = fieldSpec / 8
 	right = fieldSpec % 8
 	return
-}
-
-func CastAsAddress(word Word) Address {
-	return Address{
-		Sign:  word.Sign,
-		Value: [2]byte{word.Bytes[3], word.Bytes[4]},
-	}
 }
 
 func pow(a, b int) int {

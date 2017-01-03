@@ -31,6 +31,9 @@ func (c *Computer) Run() {
 func (c *Computer) getIndexedAddressValue(i mix.Instruction) int {
 	value := i.Address.GetValue()
 	index := i.IndexSpec
-	indexValue := c.Index[index].GetValue()
+	if index == 0 {
+		return value
+	}
+	indexValue := c.Index[index-1].GetValue()
 	return value + indexValue
 }
