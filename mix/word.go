@@ -42,6 +42,9 @@ func (w *Word) Value() (value int) {
 		base := pow(64, i)
 		value += base * int(w.Bytes[4-i])
 	}
+	if w.Sign == Negative {
+		value *= -1
+	}
 	return
 }
 
