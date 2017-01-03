@@ -108,3 +108,51 @@ func TestMUL(t *testing.T) {
 		}
 	}
 }
+
+func TestDIV(t *testing.T) {
+	tests := []struct {
+		accBefore   mix.Word
+		extBefore   mix.Word
+		memBefore   mix.Word
+		instruction mix.Instruction
+		expectedAcc mix.Word
+		expectedExt mix.Word
+	}{
+		{
+			mix.Word{Sign: mix.Positive, Bytes: [5]byte{0, 0, 0, 0, 0}},  // +[0]
+			mix.Word{Sign: mix.Negative, Bytes: [5]byte{0, 0, 0, 0, 17}}, // ?[17]
+			mix.Word{Sign: mix.Positive, Bytes: [5]byte{0, 0, 0, 0, 3}},  // +[3]
+			mix.Instruction{OpCode: mix.DIV, FieldSpec: mix.NewFieldSpec(0, 5), Address: mix.NewAddress(1000)},
+			mix.Word{Sign: mix.Positive, Bytes: [5]byte{0, 0, 0, 0, 5}}, // +[5]
+			mix.Word{Sign: mix.Positive, Bytes: [5]byte{0, 0, 0, 0, 2}}, // +[2]
+		},
+		{
+			mix.Word{Sign: mix.Negative, Bytes: [5]byte{0, 0, 0, 0, 0}},   // -[0]
+			mix.Word{Sign: mix.Positive, Bytes: [5]byte{19, 19, 0, 3, 1}}, // -[1235][0][3][1]
+			mix.Word{Sign: mix.Negative, Bytes: [5]byte{0, 0, 0, 2, 0}},   // -[0][0][0][2][0]
+			mix.Instruction{OpCode: mix.DIV, FieldSpec: mix.NewFieldSpec(0, 5), Address: mix.NewAddress(1000)},
+			mix.Word{Sign: mix.Positive, Bytes: [5]byte{0, 9, 41, 32, 1}}, // +[0][617][?][?]
+			mix.Word{Sign: mix.Negative, Bytes: [5]byte{0, 0, 0, 1, 1}},   // -[0][0][0][?][1]
+		},
+	}
+
+	for _, test := range tests {
+		computer := NewComputer()
+		computer.Accumulator = test.accBefore
+		computer.Extension = test.extBefore
+		computer.Memory[1000] = test.memBefore
+
+		operation := NewOperation(test.instruction)
+		operation.Execute(computer)
+
+		actualAcc := computer.Accumulator
+		if actualAcc != test.expectedAcc {
+			t.Errorf("Instruction: %+v: expected rA %+v, actual %+v", test.instruction, test.expectedAcc, actualAcc)
+		}
+
+		actualExt := computer.Extension
+		if actualExt != test.expectedExt {
+			t.Errorf("Instruction: %+v: expected rX %+v, actual %+v", test.instruction, test.expectedExt, actualExt)
+		}
+	}
+}

@@ -50,3 +50,40 @@ func (op MulOp) Execute(c *Computer) {
 	c.Extension = mix.NewWord(extResult)
 	c.Extension.Sign = sign
 }
+
+type DivOp struct{ mix.Instruction }
+
+func (op DivOp) Execute(c *Computer) {
+	word := mix.ApplyFieldSpec(c.Memory[c.getIndexedAddressValue(op.Instruction)], op.FieldSpec)
+
+	acc := c.Accumulator
+	if abs(acc.Value()) >= abs(word.Value()) {
+		//overflow
+		return
+	}
+
+	ext := c.Extension
+	rAX := acc.Value()*1073741824 + abs(ext.Value())
+
+	var sign mix.Sign
+	if word.Sign == acc.Sign {
+		sign = mix.Positive
+	} else {
+		sign = mix.Negative
+	}
+
+	quotient := rAX / word.Value()
+	remainder := abs(rAX) % abs(word.Value())
+
+	c.Accumulator = mix.NewWord(quotient)
+	c.Accumulator.Sign = sign
+	c.Extension = mix.NewWord(remainder)
+	c.Extension.Sign = acc.Sign
+}
+
+func abs(x int) int {
+	if x < 0 {
+		return -x
+	}
+	return x
+}
