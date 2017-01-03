@@ -80,6 +80,13 @@ func TestMUL(t *testing.T) {
 			mix.Word{Sign: mix.Negative, Bytes: [5]byte{0, 0, 0, 0, 0}},  // -[0]
 			mix.Word{Sign: mix.Negative, Bytes: [5]byte{0, 0, 0, 3, 32}}, // -[224]
 		},
+		{
+			mix.Word{Sign: mix.Negative, Bytes: [5]byte{50, 0, 1, 48, 4}}, // -[50][0][112][4]
+			mix.Word{Sign: mix.Negative, Bytes: [5]byte{2, 0, 0, 0, 0}},   // -[2][0][0][0][0]
+			mix.Instruction{OpCode: mix.MUL, FieldSpec: mix.NewFieldSpec(0, 5), Address: mix.NewAddress(1000)},
+			mix.Word{Sign: mix.Positive, Bytes: [5]byte{1, 36, 0, 3, 32}}, // +[100][0][224]
+			mix.Word{Sign: mix.Positive, Bytes: [5]byte{8, 0, 0, 0, 0}},   // +[8][0][0][0][0]
+		},
 	}
 
 	for _, test := range tests {
