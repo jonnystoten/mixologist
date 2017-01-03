@@ -33,7 +33,7 @@ func NewWord(value int) Word {
 func NewWordFromAddress(address Address) Word {
 	return Word{
 		Sign:  address.Sign,
-		Bytes: [5]byte{0, 0, 0, address.Value[0], address.Value[1]},
+		Bytes: [5]byte{0, 0, 0, address.Bytes[0], address.Bytes[1]},
 	}
 }
 

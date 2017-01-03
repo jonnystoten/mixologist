@@ -139,7 +139,7 @@ func TestSTi(t *testing.T) {
 	for _, test := range tests {
 		computer := NewComputer()
 		computer.Memory[2000] = mix.Word{Sign: mix.Negative, Bytes: [5]byte{1, 2, 3, 4, 5}}
-		computer.Index[test.index-1] = mix.Address{Sign: mix.Positive, Value: [2]byte{6, 7}}
+		computer.Index[test.index-1] = mix.Address{Sign: mix.Positive, Bytes: [2]byte{6, 7}}
 
 		operation := NewOperation(test.instruction)
 		operation.Execute(computer)
@@ -185,7 +185,7 @@ func TestSTJ(t *testing.T) {
 	for _, test := range tests {
 		computer := NewComputer()
 		computer.Memory[2000] = mix.Word{Sign: mix.Negative, Bytes: [5]byte{1, 2, 3, 4, 5}}
-		computer.JumpAddress = mix.Address{Sign: mix.Positive, Value: [2]byte{6, 7}}
+		computer.JumpAddress = mix.Address{Sign: mix.Positive, Bytes: [2]byte{6, 7}}
 
 		operation := NewOperation(test.instruction)
 		operation.Execute(computer)

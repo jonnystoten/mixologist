@@ -109,8 +109,8 @@ func (a *Assembler) fixupFutureRefs(name string) {
 		log.Printf("Got a ref to '%v' at %v", name, ref)
 		address := mix.NewAddress(target)
 		a.words[ref].Sign = address.Sign
-		a.words[ref].Bytes[0] = address.Value[0]
-		a.words[ref].Bytes[1] = address.Value[1]
+		a.words[ref].Bytes[0] = address.Bytes[0]
+		a.words[ref].Bytes[1] = address.Bytes[1]
 	}
 
 	delete(a.futureRefTable, name)

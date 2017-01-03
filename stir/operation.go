@@ -33,6 +33,8 @@ func NewOperation(instruction mix.Instruction) Operation {
 		return LoadOp{instruction}
 	case mix.STA <= instruction.OpCode && instruction.OpCode <= mix.STZ:
 		return StoreOp{instruction}
+	case mix.ENTA <= instruction.OpCode && instruction.OpCode <= mix.ENTX && (instruction.FieldSpec == 2 || instruction.FieldSpec == 3):
+		return EnterOp{instruction}
 	default:
 		panic(fmt.Sprintf("unimplemented op code %v! Full instruction: %+v", instruction.OpCode, instruction))
 	}

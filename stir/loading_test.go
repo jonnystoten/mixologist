@@ -105,32 +105,32 @@ func TestLDi(t *testing.T) {
 		{
 			mix.Instruction{OpCode: mix.LD1, FieldSpec: mix.NewFieldSpec(0, 5), Address: mix.NewAddress(2000)},
 			1,
-			mix.Address{Sign: mix.Negative, Value: [2]byte{5, 4}},
+			mix.Address{Sign: mix.Negative, Bytes: [2]byte{5, 4}},
 		},
 		{
 			mix.Instruction{OpCode: mix.LD2, FieldSpec: mix.NewFieldSpec(1, 5), Address: mix.NewAddress(2000)},
 			2,
-			mix.Address{Sign: mix.Positive, Value: [2]byte{5, 4}},
+			mix.Address{Sign: mix.Positive, Bytes: [2]byte{5, 4}},
 		},
 		{
 			mix.Instruction{OpCode: mix.LD3, FieldSpec: mix.NewFieldSpec(3, 5), Address: mix.NewAddress(2000)},
 			3,
-			mix.Address{Sign: mix.Positive, Value: [2]byte{5, 4}},
+			mix.Address{Sign: mix.Positive, Bytes: [2]byte{5, 4}},
 		},
 		{
 			mix.Instruction{OpCode: mix.LD4, FieldSpec: mix.NewFieldSpec(0, 3), Address: mix.NewAddress(2000)},
 			4,
-			mix.Address{Sign: mix.Negative, Value: [2]byte{0, 0}},
+			mix.Address{Sign: mix.Negative, Bytes: [2]byte{0, 0}},
 		},
 		{
 			mix.Instruction{OpCode: mix.LD5, FieldSpec: mix.NewFieldSpec(4, 4), Address: mix.NewAddress(2000)},
 			5,
-			mix.Address{Sign: mix.Positive, Value: [2]byte{0, 5}},
+			mix.Address{Sign: mix.Positive, Bytes: [2]byte{0, 5}},
 		},
 		{
 			mix.Instruction{OpCode: mix.LD6, FieldSpec: mix.NewFieldSpec(0, 0), Address: mix.NewAddress(2000)},
 			6,
-			mix.Address{Sign: mix.Negative, Value: [2]byte{0, 0}},
+			mix.Address{Sign: mix.Negative, Bytes: [2]byte{0, 0}},
 		},
 	}
 
@@ -247,32 +247,32 @@ func TestLDiN(t *testing.T) {
 		{
 			mix.Instruction{OpCode: mix.LD1N, FieldSpec: mix.NewFieldSpec(0, 5), Address: mix.NewAddress(2000)},
 			1,
-			mix.Address{Sign: mix.Positive, Value: [2]byte{5, 4}},
+			mix.Address{Sign: mix.Positive, Bytes: [2]byte{5, 4}},
 		},
 		{
 			mix.Instruction{OpCode: mix.LD2N, FieldSpec: mix.NewFieldSpec(1, 5), Address: mix.NewAddress(2000)},
 			2,
-			mix.Address{Sign: mix.Negative, Value: [2]byte{5, 4}},
+			mix.Address{Sign: mix.Negative, Bytes: [2]byte{5, 4}},
 		},
 		{
 			mix.Instruction{OpCode: mix.LD3N, FieldSpec: mix.NewFieldSpec(3, 5), Address: mix.NewAddress(2000)},
 			3,
-			mix.Address{Sign: mix.Negative, Value: [2]byte{5, 4}},
+			mix.Address{Sign: mix.Negative, Bytes: [2]byte{5, 4}},
 		},
 		{
 			mix.Instruction{OpCode: mix.LD4N, FieldSpec: mix.NewFieldSpec(0, 3), Address: mix.NewAddress(2000)},
 			4,
-			mix.Address{Sign: mix.Positive, Value: [2]byte{0, 0}},
+			mix.Address{Sign: mix.Positive, Bytes: [2]byte{0, 0}},
 		},
 		{
 			mix.Instruction{OpCode: mix.LD5N, FieldSpec: mix.NewFieldSpec(4, 4), Address: mix.NewAddress(2000)},
 			5,
-			mix.Address{Sign: mix.Negative, Value: [2]byte{0, 5}},
+			mix.Address{Sign: mix.Negative, Bytes: [2]byte{0, 5}},
 		},
 		{
 			mix.Instruction{OpCode: mix.LD6N, FieldSpec: mix.NewFieldSpec(0, 0), Address: mix.NewAddress(2000)},
 			6,
-			mix.Address{Sign: mix.Positive, Value: [2]byte{0, 0}},
+			mix.Address{Sign: mix.Positive, Bytes: [2]byte{0, 0}},
 		},
 	}
 

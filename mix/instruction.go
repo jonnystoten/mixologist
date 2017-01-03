@@ -11,8 +11,8 @@ func EncodeInstruction(instruction Instruction) Word {
 	return Word{
 		Sign: instruction.Address.Sign,
 		Bytes: [5]byte{
-			instruction.Address.Value[0],
-			instruction.Address.Value[1],
+			instruction.Address.Bytes[0],
+			instruction.Address.Bytes[1],
 			instruction.IndexSpec,
 			instruction.FieldSpec,
 			byte(instruction.OpCode),
@@ -22,7 +22,7 @@ func EncodeInstruction(instruction Instruction) Word {
 
 func DecodeInstruction(word Word) Instruction {
 	address := Address{Sign: word.Sign}
-	copy(address.Value[:], word.Bytes[0:2])
+	copy(address.Bytes[:], word.Bytes[0:2])
 
 	return Instruction{
 		Address:   address,
