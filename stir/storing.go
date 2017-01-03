@@ -14,6 +14,10 @@ func (op StoreOp) Execute(c *Computer) {
 	case mix.ST1 <= op.OpCode && op.OpCode <= mix.ST6:
 		index := op.OpCode - mix.ST1
 		register = mix.NewWordFromAddress(c.Index[index])
+	case op.OpCode == mix.STJ:
+		register = mix.NewWordFromAddress(c.JumpAddress)
+	case op.OpCode == mix.STZ:
+		register = mix.Word{}
 	}
 
 	address := c.getIndexedAddressValue(op.Instruction)

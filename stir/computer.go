@@ -7,6 +7,7 @@ type Computer struct {
 	Accumulator    mix.Word
 	Extension      mix.Word
 	Index          [6]mix.Address
+	JumpAddress    mix.Address
 	Memory         [4000]mix.Word
 	ProgramCounter int
 }
