@@ -28,3 +28,56 @@ func (op EnterOp) Execute(c *Computer) {
 		c.Index[index] = mix.CastAsAddress(word)
 	}
 }
+
+type IncreaseOp struct{ mix.Instruction }
+
+func (op IncreaseOp) Execute(c *Computer) {
+	value := c.getIndexedAddressValue(op.Instruction)
+	word := mix.NewWord(value)
+
+	// TODO: is there a better way to do this?
+	switch {
+	case op.OpCode == mix.INCA:
+		acc := c.Accumulator
+		sum := acc.Value() + word.Value()
+		c.Accumulator = mix.NewWord(sum)
+	case op.OpCode == mix.INCX:
+		ext := c.Extension
+		sum := ext.Value() + word.Value()
+		c.Extension = mix.NewWord(sum)
+	case mix.INC1 <= op.OpCode && op.OpCode <= mix.INC6:
+		index := op.OpCode - mix.INC1
+		i := c.Index[index]
+		sum := i.Value() + word.Value()
+		c.Index[index] = mix.NewAddress(sum)
+	}
+
+	// TODO: check for overflow
+}
+
+// TODO: maybe merge this with IncreaseOp
+type DecreaseOp struct{ mix.Instruction }
+
+func (op DecreaseOp) Execute(c *Computer) {
+	value := c.getIndexedAddressValue(op.Instruction)
+	word := mix.NewWord(value)
+
+	// TODO: is there a better way to do this?
+	switch {
+	case op.OpCode == mix.DECA:
+		acc := c.Accumulator
+		sum := acc.Value() - word.Value()
+		c.Accumulator = mix.NewWord(sum)
+	case op.OpCode == mix.DECX:
+		ext := c.Extension
+		sum := ext.Value() - word.Value()
+		c.Extension = mix.NewWord(sum)
+	case mix.DEC1 <= op.OpCode && op.OpCode <= mix.DEC6:
+		index := op.OpCode - mix.DEC1
+		i := c.Index[index]
+		sum := i.Value() - word.Value()
+		c.Index[index] = mix.NewAddress(sum)
+	}
+
+	// TODO: check for overflow
+}

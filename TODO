@@ -1,5 +1,5 @@
 stir TODO:
- - address transfer ops
+ - overflow
  - comparison ops
  - jump ops
  - misc ops
