@@ -1,0 +1,16 @@
+stir TODO:
+ - storing ops
+ - arithmetic ops
+ - address transfer ops
+ - comparison ops
+ - jump ops
+ - misc ops
+ - I/O
+ - conversion ops
+ - timing
+
+shake TODO:
+ - literal constants
+ - local symbols
+ - W-values
+ - END
