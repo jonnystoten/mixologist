@@ -40,7 +40,9 @@ func TestLDA(t *testing.T) {
 	for _, test := range tests {
 		computer := NewComputer()
 		computer.Memory[2000] = mix.Word{Sign: mix.Negative, Bytes: [5]byte{1, 16, 3, 5, 4}}
-		computer.Execute(test.instruction)
+
+		operation := NewOperation(test.instruction)
+		operation.Execute(computer)
 
 		actual := computer.Accumulator
 		if actual != test.expected {
@@ -83,7 +85,9 @@ func TestLDX(t *testing.T) {
 	for _, test := range tests {
 		computer := NewComputer()
 		computer.Memory[2000] = mix.Word{Sign: mix.Negative, Bytes: [5]byte{1, 16, 3, 5, 4}}
-		computer.Execute(test.instruction)
+
+		operation := NewOperation(test.instruction)
+		operation.Execute(computer)
 
 		actual := computer.Extension
 		if actual != test.expected {
@@ -133,7 +137,9 @@ func TestLDi(t *testing.T) {
 	for _, test := range tests {
 		computer := NewComputer()
 		computer.Memory[2000] = mix.Word{Sign: mix.Negative, Bytes: [5]byte{0, 0, 0, 5, 4}}
-		computer.Execute(test.instruction)
+
+		operation := NewOperation(test.instruction)
+		operation.Execute(computer)
 
 		actual := computer.Index[test.index-1]
 		if actual != test.expected {
@@ -176,7 +182,9 @@ func TestLDAN(t *testing.T) {
 	for _, test := range tests {
 		computer := NewComputer()
 		computer.Memory[2000] = mix.Word{Sign: mix.Negative, Bytes: [5]byte{1, 16, 3, 5, 4}}
-		computer.Execute(test.instruction)
+
+		operation := NewOperation(test.instruction)
+		operation.Execute(computer)
 
 		actual := computer.Accumulator
 		if actual != test.expected {
@@ -219,7 +227,9 @@ func TestLDXN(t *testing.T) {
 	for _, test := range tests {
 		computer := NewComputer()
 		computer.Memory[2000] = mix.Word{Sign: mix.Negative, Bytes: [5]byte{1, 16, 3, 5, 4}}
-		computer.Execute(test.instruction)
+
+		operation := NewOperation(test.instruction)
+		operation.Execute(computer)
 
 		actual := computer.Extension
 		if actual != test.expected {
@@ -269,7 +279,9 @@ func TestLDiN(t *testing.T) {
 	for _, test := range tests {
 		computer := NewComputer()
 		computer.Memory[2000] = mix.Word{Sign: mix.Negative, Bytes: [5]byte{0, 0, 0, 5, 4}}
-		computer.Execute(test.instruction)
+
+		operation := NewOperation(test.instruction)
+		operation.Execute(computer)
 
 		actual := computer.Index[test.index-1]
 		if actual != test.expected {
