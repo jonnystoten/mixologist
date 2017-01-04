@@ -39,6 +39,8 @@ func NewOperation(instruction mix.Instruction) Operation {
 		return IncreaseOp{instruction}
 	case mix.DECA <= instruction.OpCode && instruction.OpCode <= mix.DECX && instruction.FieldSpec == 1:
 		return DecreaseOp{instruction}
+	case mix.CMPA <= instruction.OpCode && instruction.OpCode <= mix.CMPX:
+		return CompareOp{instruction}
 	default:
 		panic(fmt.Sprintf("unimplemented op code %v! Full instruction: %+v", instruction.OpCode, instruction))
 	}

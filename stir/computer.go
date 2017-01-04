@@ -11,6 +11,7 @@ type Computer struct {
 	Memory         [4000]mix.Word
 	ProgramCounter int
 	Overflow       bool
+	Comparison     mix.Comparison
 }
 
 func NewComputer() *Computer {
