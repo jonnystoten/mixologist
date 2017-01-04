@@ -2,6 +2,8 @@ package stir
 
 import (
 	"fmt"
+	"os"
+	"sync"
 
 	"jonnystoten.com/mixologist/mix"
 )
@@ -16,12 +18,21 @@ type Computer struct {
 	ProgramCounter int
 	Overflow       bool
 	Comparison     mix.Comparison
+	IODevices      [20]IODevice
+	IOWaitGroup    *sync.WaitGroup
 }
 
 func NewComputer() *Computer {
 	computer := &Computer{}
 	computer.Accumulator = mix.Word{}
 	computer.Extension = mix.Word{}
+	computer.IODevices = [20]IODevice{}
+	for i := 0; i < 8; i++ {
+		filename := fmt.Sprintf("tape%v.dat", i)
+		os.Create(filename)
+		computer.IODevices[i] = TapeUnit{filename: filename}
+	}
+	computer.IOWaitGroup = &sync.WaitGroup{}
 	return computer
 }
 

@@ -31,11 +31,15 @@ func main() {
 	computer := stir.NewComputer()
 	copy(computer.Memory[:], words)
 
+	log.Println("Ready to GO...")
+
 	computer.Run()
 
-	// for _, word := range words {
-	// 	log.Printf("%+v\n", word)
-	// }
+	log.Println("done, waiting for remaining IO...")
+	computer.IOWaitGroup.Wait()
+
+	log.Println("done!")
+	log.Println("==========")
 
 	log.Printf("rA: %v", computer.Accumulator)
 	log.Printf("rX: %v", computer.Extension)
@@ -49,7 +53,11 @@ func main() {
 	log.Printf("Overflow: %v", computer.Overflow)
 	log.Printf("Comparison: %v", computer.Comparison)
 
-	log.Println("done!")
-	log.Println("==========")
+	for i, word := range computer.Memory {
+		if word != (mix.Word{}) {
+			log.Printf("M %04v: %v", i, word)
+		}
+	}
+
 	log.Println()
 }
