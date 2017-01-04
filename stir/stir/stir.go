@@ -47,6 +47,7 @@ func main() {
 	log.Printf("rI6: %v", computer.Index[5])
 	log.Printf("rJ: %v", computer.JumpAddress)
 	log.Printf("Overflow: %v", computer.Overflow)
+	log.Printf("Comparison: %v", computer.Comparison)
 
 	log.Println("done!")
 	log.Println("==========")

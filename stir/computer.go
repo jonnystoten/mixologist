@@ -1,6 +1,10 @@
 package stir
 
-import "jonnystoten.com/mixologist/mix"
+import (
+	"fmt"
+
+	"jonnystoten.com/mixologist/mix"
+)
 
 type Computer struct {
 	Running        bool
@@ -24,10 +28,16 @@ func NewComputer() *Computer {
 func (c *Computer) Run() {
 	c.Running = true
 	for c.Running {
-		word := c.Memory[c.ProgramCounter]
-		operation := Decode(word)
-		operation.Execute(c)
-		c.ProgramCounter++ // TODO: will this screw up jumps?
+		c.FetchDecodeExecute()
+	}
+}
+
+func (c *Computer) FetchDecodeExecute() {
+	word := c.Memory[c.ProgramCounter]
+	operation := Decode(word)
+	operation.Execute(c)
+	if _, isJump := operation.(JumpOp); !isJump {
+		c.ProgramCounter++
 	}
 }
 
