@@ -1,13 +1,13 @@
 stir TODO:
  - jump ops
- - misc ops
  - I/O
+ - misc ops
  - conversion ops
  - timing
  - decimal bytes
 
 shake TODO:
- - literal constants
- - local symbols
- - W-values
  - END
+ - local symbols
+ - literal constants
+ - W-values
