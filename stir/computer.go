@@ -36,7 +36,10 @@ func (c *Computer) FetchDecodeExecute() {
 	word := c.Memory[c.ProgramCounter]
 	operation := Decode(word)
 	operation.Execute(c)
-	if _, isJump := operation.(JumpOp); !isJump {
+	switch operation.(type) {
+	case JumpOp:
+	case RegisterJumpOp:
+	default:
 		c.ProgramCounter++
 	}
 }

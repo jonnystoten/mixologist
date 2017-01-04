@@ -322,3 +322,633 @@ func TestJLE(t *testing.T) {
 		}
 	}
 }
+
+func TestJAN(t *testing.T) {
+	tests := []struct {
+		acc      mix.Word
+		expected int
+	}{
+		{
+			mix.NewWord(5000),
+			100,
+		},
+		{
+			mix.NewWord(-5000),
+			1000,
+		},
+		{
+			mix.NewWord(0),
+			100,
+		},
+	}
+
+	for _, test := range tests {
+		computer := NewComputer()
+		computer.ProgramCounter = 100
+		computer.Accumulator = test.acc
+		instruction := mix.Instruction{OpCode: mix.JAN, FieldSpec: 0, Address: mix.NewAddress(1000)}
+		computer.Memory[100] = mix.EncodeInstruction(instruction)
+
+		computer.FetchDecodeExecute()
+
+		actual := computer.ProgramCounter
+		if actual != test.expected {
+			t.Errorf("Expected PC to be %+v, actual %+v", test.expected, actual)
+		}
+	}
+}
+
+func TestJAZ(t *testing.T) {
+	tests := []struct {
+		acc      mix.Word
+		expected int
+	}{
+		{
+			mix.NewWord(5000),
+			100,
+		},
+		{
+			mix.NewWord(-5000),
+			100,
+		},
+		{
+			mix.NewWord(0),
+			1000,
+		},
+	}
+
+	for _, test := range tests {
+		computer := NewComputer()
+		computer.ProgramCounter = 100
+		computer.Accumulator = test.acc
+		instruction := mix.Instruction{OpCode: mix.JAZ, FieldSpec: 1, Address: mix.NewAddress(1000)}
+		computer.Memory[100] = mix.EncodeInstruction(instruction)
+
+		computer.FetchDecodeExecute()
+
+		actual := computer.ProgramCounter
+		if actual != test.expected {
+			t.Errorf("Expected PC to be %+v, actual %+v", test.expected, actual)
+		}
+	}
+}
+
+func TestJAP(t *testing.T) {
+	tests := []struct {
+		acc      mix.Word
+		expected int
+	}{
+		{
+			mix.NewWord(5000),
+			1000,
+		},
+		{
+			mix.NewWord(-5000),
+			100,
+		},
+		{
+			mix.NewWord(0),
+			100,
+		},
+	}
+
+	for _, test := range tests {
+		computer := NewComputer()
+		computer.ProgramCounter = 100
+		computer.Accumulator = test.acc
+		instruction := mix.Instruction{OpCode: mix.JAP, FieldSpec: 2, Address: mix.NewAddress(1000)}
+		computer.Memory[100] = mix.EncodeInstruction(instruction)
+
+		computer.FetchDecodeExecute()
+
+		actual := computer.ProgramCounter
+		if actual != test.expected {
+			t.Errorf("Expected PC to be %+v, actual %+v", test.expected, actual)
+		}
+	}
+}
+
+func TestJANN(t *testing.T) {
+	tests := []struct {
+		acc      mix.Word
+		expected int
+	}{
+		{
+			mix.NewWord(5000),
+			1000,
+		},
+		{
+			mix.NewWord(-5000),
+			100,
+		},
+		{
+			mix.NewWord(0),
+			1000,
+		},
+	}
+
+	for _, test := range tests {
+		computer := NewComputer()
+		computer.ProgramCounter = 100
+		computer.Accumulator = test.acc
+		instruction := mix.Instruction{OpCode: mix.JANN, FieldSpec: 3, Address: mix.NewAddress(1000)}
+		computer.Memory[100] = mix.EncodeInstruction(instruction)
+
+		computer.FetchDecodeExecute()
+
+		actual := computer.ProgramCounter
+		if actual != test.expected {
+			t.Errorf("Expected PC to be %+v, actual %+v", test.expected, actual)
+		}
+	}
+}
+
+func TestJANZ(t *testing.T) {
+	tests := []struct {
+		acc      mix.Word
+		expected int
+	}{
+		{
+			mix.NewWord(5000),
+			1000,
+		},
+		{
+			mix.NewWord(-5000),
+			1000,
+		},
+		{
+			mix.NewWord(0),
+			100,
+		},
+	}
+
+	for _, test := range tests {
+		computer := NewComputer()
+		computer.ProgramCounter = 100
+		computer.Accumulator = test.acc
+		instruction := mix.Instruction{OpCode: mix.JANZ, FieldSpec: 4, Address: mix.NewAddress(1000)}
+		computer.Memory[100] = mix.EncodeInstruction(instruction)
+
+		computer.FetchDecodeExecute()
+
+		actual := computer.ProgramCounter
+		if actual != test.expected {
+			t.Errorf("Expected PC to be %+v, actual %+v", test.expected, actual)
+		}
+	}
+}
+
+func TestJANP(t *testing.T) {
+	tests := []struct {
+		acc      mix.Word
+		expected int
+	}{
+		{
+			mix.NewWord(5000),
+			100,
+		},
+		{
+			mix.NewWord(-5000),
+			1000,
+		},
+		{
+			mix.NewWord(0),
+			1000,
+		},
+	}
+
+	for _, test := range tests {
+		computer := NewComputer()
+		computer.ProgramCounter = 100
+		computer.Accumulator = test.acc
+		instruction := mix.Instruction{OpCode: mix.JANP, FieldSpec: 5, Address: mix.NewAddress(1000)}
+		computer.Memory[100] = mix.EncodeInstruction(instruction)
+
+		computer.FetchDecodeExecute()
+
+		actual := computer.ProgramCounter
+		if actual != test.expected {
+			t.Errorf("Expected PC to be %+v, actual %+v", test.expected, actual)
+		}
+	}
+}
+
+func TestJXN(t *testing.T) {
+	tests := []struct {
+		ext      mix.Word
+		expected int
+	}{
+		{
+			mix.NewWord(5000),
+			100,
+		},
+		{
+			mix.NewWord(-5000),
+			1000,
+		},
+		{
+			mix.NewWord(0),
+			100,
+		},
+	}
+
+	for _, test := range tests {
+		computer := NewComputer()
+		computer.ProgramCounter = 100
+		computer.Extension = test.ext
+		instruction := mix.Instruction{OpCode: mix.JXN, FieldSpec: 0, Address: mix.NewAddress(1000)}
+		computer.Memory[100] = mix.EncodeInstruction(instruction)
+
+		computer.FetchDecodeExecute()
+
+		actual := computer.ProgramCounter
+		if actual != test.expected {
+			t.Errorf("Expected PC to be %+v, actual %+v", test.expected, actual)
+		}
+	}
+}
+
+func TestJXZ(t *testing.T) {
+	tests := []struct {
+		ext      mix.Word
+		expected int
+	}{
+		{
+			mix.NewWord(5000),
+			100,
+		},
+		{
+			mix.NewWord(-5000),
+			100,
+		},
+		{
+			mix.NewWord(0),
+			1000,
+		},
+	}
+
+	for _, test := range tests {
+		computer := NewComputer()
+		computer.ProgramCounter = 100
+		computer.Extension = test.ext
+		instruction := mix.Instruction{OpCode: mix.JXZ, FieldSpec: 1, Address: mix.NewAddress(1000)}
+		computer.Memory[100] = mix.EncodeInstruction(instruction)
+
+		computer.FetchDecodeExecute()
+
+		actual := computer.ProgramCounter
+		if actual != test.expected {
+			t.Errorf("Expected PC to be %+v, actual %+v", test.expected, actual)
+		}
+	}
+}
+
+func TestJXP(t *testing.T) {
+	tests := []struct {
+		ext      mix.Word
+		expected int
+	}{
+		{
+			mix.NewWord(5000),
+			1000,
+		},
+		{
+			mix.NewWord(-5000),
+			100,
+		},
+		{
+			mix.NewWord(0),
+			100,
+		},
+	}
+
+	for _, test := range tests {
+		computer := NewComputer()
+		computer.ProgramCounter = 100
+		computer.Extension = test.ext
+		instruction := mix.Instruction{OpCode: mix.JXP, FieldSpec: 2, Address: mix.NewAddress(1000)}
+		computer.Memory[100] = mix.EncodeInstruction(instruction)
+
+		computer.FetchDecodeExecute()
+
+		actual := computer.ProgramCounter
+		if actual != test.expected {
+			t.Errorf("Expected PC to be %+v, actual %+v", test.expected, actual)
+		}
+	}
+}
+
+func TestJXNN(t *testing.T) {
+	tests := []struct {
+		ext      mix.Word
+		expected int
+	}{
+		{
+			mix.NewWord(5000),
+			1000,
+		},
+		{
+			mix.NewWord(-5000),
+			100,
+		},
+		{
+			mix.NewWord(0),
+			1000,
+		},
+	}
+
+	for _, test := range tests {
+		computer := NewComputer()
+		computer.ProgramCounter = 100
+		computer.Extension = test.ext
+		instruction := mix.Instruction{OpCode: mix.JXNN, FieldSpec: 3, Address: mix.NewAddress(1000)}
+		computer.Memory[100] = mix.EncodeInstruction(instruction)
+
+		computer.FetchDecodeExecute()
+
+		actual := computer.ProgramCounter
+		if actual != test.expected {
+			t.Errorf("Expected PC to be %+v, actual %+v", test.expected, actual)
+		}
+	}
+}
+
+func TestJXNZ(t *testing.T) {
+	tests := []struct {
+		ext      mix.Word
+		expected int
+	}{
+		{
+			mix.NewWord(5000),
+			1000,
+		},
+		{
+			mix.NewWord(-5000),
+			1000,
+		},
+		{
+			mix.NewWord(0),
+			100,
+		},
+	}
+
+	for _, test := range tests {
+		computer := NewComputer()
+		computer.ProgramCounter = 100
+		computer.Extension = test.ext
+		instruction := mix.Instruction{OpCode: mix.JXNZ, FieldSpec: 4, Address: mix.NewAddress(1000)}
+		computer.Memory[100] = mix.EncodeInstruction(instruction)
+
+		computer.FetchDecodeExecute()
+
+		actual := computer.ProgramCounter
+		if actual != test.expected {
+			t.Errorf("Expected PC to be %+v, actual %+v", test.expected, actual)
+		}
+	}
+}
+
+func TestJXNP(t *testing.T) {
+	tests := []struct {
+		ext      mix.Word
+		expected int
+	}{
+		{
+			mix.NewWord(5000),
+			100,
+		},
+		{
+			mix.NewWord(-5000),
+			1000,
+		},
+		{
+			mix.NewWord(0),
+			1000,
+		},
+	}
+
+	for _, test := range tests {
+		computer := NewComputer()
+		computer.ProgramCounter = 100
+		computer.Extension = test.ext
+		instruction := mix.Instruction{OpCode: mix.JXNP, FieldSpec: 5, Address: mix.NewAddress(1000)}
+		computer.Memory[100] = mix.EncodeInstruction(instruction)
+
+		computer.FetchDecodeExecute()
+
+		actual := computer.ProgramCounter
+		if actual != test.expected {
+			t.Errorf("Expected PC to be %+v, actual %+v", test.expected, actual)
+		}
+	}
+}
+
+func TestJiN(t *testing.T) {
+	tests := []struct {
+		idx      mix.Address
+		expected int
+	}{
+		{
+			mix.NewAddress(5000),
+			100,
+		},
+		{
+			mix.NewAddress(-5000),
+			1000,
+		},
+		{
+			mix.NewAddress(0),
+			100,
+		},
+	}
+
+	for _, test := range tests {
+		computer := NewComputer()
+		computer.ProgramCounter = 100
+		computer.Index[0] = test.idx
+		instruction := mix.Instruction{OpCode: mix.J1N, FieldSpec: 0, Address: mix.NewAddress(1000)}
+		computer.Memory[100] = mix.EncodeInstruction(instruction)
+
+		computer.FetchDecodeExecute()
+
+		actual := computer.ProgramCounter
+		if actual != test.expected {
+			t.Errorf("Expected PC to be %+v, actual %+v", test.expected, actual)
+		}
+	}
+}
+
+func TestJiZ(t *testing.T) {
+	tests := []struct {
+		idx      mix.Address
+		expected int
+	}{
+		{
+			mix.NewAddress(5000),
+			100,
+		},
+		{
+			mix.NewAddress(-5000),
+			100,
+		},
+		{
+			mix.NewAddress(0),
+			1000,
+		},
+	}
+
+	for _, test := range tests {
+		computer := NewComputer()
+		computer.ProgramCounter = 100
+		computer.Index[1] = test.idx
+		instruction := mix.Instruction{OpCode: mix.J2Z, FieldSpec: 1, Address: mix.NewAddress(1000)}
+		computer.Memory[100] = mix.EncodeInstruction(instruction)
+
+		computer.FetchDecodeExecute()
+
+		actual := computer.ProgramCounter
+		if actual != test.expected {
+			t.Errorf("Expected PC to be %+v, actual %+v", test.expected, actual)
+		}
+	}
+}
+
+func TestJiP(t *testing.T) {
+	tests := []struct {
+		idx      mix.Address
+		expected int
+	}{
+		{
+			mix.NewAddress(5000),
+			1000,
+		},
+		{
+			mix.NewAddress(-5000),
+			100,
+		},
+		{
+			mix.NewAddress(0),
+			100,
+		},
+	}
+
+	for _, test := range tests {
+		computer := NewComputer()
+		computer.ProgramCounter = 100
+		computer.Index[2] = test.idx
+		instruction := mix.Instruction{OpCode: mix.J3P, FieldSpec: 2, Address: mix.NewAddress(1000)}
+		computer.Memory[100] = mix.EncodeInstruction(instruction)
+
+		computer.FetchDecodeExecute()
+
+		actual := computer.ProgramCounter
+		if actual != test.expected {
+			t.Errorf("Expected PC to be %+v, actual %+v", test.expected, actual)
+		}
+	}
+}
+
+func TestJiNN(t *testing.T) {
+	tests := []struct {
+		idx      mix.Address
+		expected int
+	}{
+		{
+			mix.NewAddress(5000),
+			1000,
+		},
+		{
+			mix.NewAddress(-5000),
+			100,
+		},
+		{
+			mix.NewAddress(0),
+			1000,
+		},
+	}
+
+	for _, test := range tests {
+		computer := NewComputer()
+		computer.ProgramCounter = 100
+		computer.Index[3] = test.idx
+		instruction := mix.Instruction{OpCode: mix.J4NN, FieldSpec: 3, Address: mix.NewAddress(1000)}
+		computer.Memory[100] = mix.EncodeInstruction(instruction)
+
+		computer.FetchDecodeExecute()
+
+		actual := computer.ProgramCounter
+		if actual != test.expected {
+			t.Errorf("Expected PC to be %+v, actual %+v", test.expected, actual)
+		}
+	}
+}
+
+func TestJiNZ(t *testing.T) {
+	tests := []struct {
+		idx      mix.Address
+		expected int
+	}{
+		{
+			mix.NewAddress(5000),
+			1000,
+		},
+		{
+			mix.NewAddress(-5000),
+			1000,
+		},
+		{
+			mix.NewAddress(0),
+			100,
+		},
+	}
+
+	for _, test := range tests {
+		computer := NewComputer()
+		computer.ProgramCounter = 100
+		computer.Index[4] = test.idx
+		instruction := mix.Instruction{OpCode: mix.J5NZ, FieldSpec: 4, Address: mix.NewAddress(1000)}
+		computer.Memory[100] = mix.EncodeInstruction(instruction)
+
+		computer.FetchDecodeExecute()
+
+		actual := computer.ProgramCounter
+		if actual != test.expected {
+			t.Errorf("Expected PC to be %+v, actual %+v", test.expected, actual)
+		}
+	}
+}
+
+func TestJiNP(t *testing.T) {
+	tests := []struct {
+		idx      mix.Address
+		expected int
+	}{
+		{
+			mix.NewAddress(5000),
+			100,
+		},
+		{
+			mix.NewAddress(-5000),
+			1000,
+		},
+		{
+			mix.NewAddress(0),
+			1000,
+		},
+	}
+
+	for _, test := range tests {
+		computer := NewComputer()
+		computer.ProgramCounter = 100
+		computer.Index[5] = test.idx
+		instruction := mix.Instruction{OpCode: mix.J6NP, FieldSpec: 5, Address: mix.NewAddress(1000)}
+		computer.Memory[100] = mix.EncodeInstruction(instruction)
+
+		computer.FetchDecodeExecute()
+
+		actual := computer.ProgramCounter
+		if actual != test.expected {
+			t.Errorf("Expected PC to be %+v, actual %+v", test.expected, actual)
+		}
+	}
+}

@@ -30,6 +30,51 @@ func (op JumpOp) Execute(c *Computer) {
 	}
 }
 
+type RegisterJumpOp struct{ mix.Instruction }
+
+func (op RegisterJumpOp) Execute(c *Computer) {
+	address := c.getIndexedAddressValue(op.Instruction)
+	var register mix.Word
+	switch {
+	case op.OpCode == mix.JAN: // TODO: use int?
+		register = c.Accumulator
+	case op.OpCode == mix.JXN:
+		register = c.Extension
+	case mix.J1N <= op.OpCode && op.OpCode <= mix.J6N:
+		index := op.OpCode - mix.J1N
+		register = mix.NewWordFromAddress(c.Index[index])
+	}
+
+	value := register.Value()
+
+	switch op.FieldSpec {
+	case 0: // JAN
+		if value < 0 {
+			jump(address, c)
+		}
+	case 1: // JAZ
+		if value == 0 {
+			jump(address, c)
+		}
+	case 2: // JAP
+		if value > 0 {
+			jump(address, c)
+		}
+	case 3: // JANN
+		if value >= 0 {
+			jump(address, c)
+		}
+	case 4: // JANZ
+		if value != 0 {
+			jump(address, c)
+		}
+	case 5: // JANP
+		if value <= 0 {
+			jump(address, c)
+		}
+	}
+}
+
 func jump(address int, c *Computer) {
 	c.JumpAddress = mix.NewAddress(c.ProgramCounter)
 	c.ProgramCounter = address
