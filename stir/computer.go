@@ -42,8 +42,12 @@ func (c *Computer) FetchDecodeExecute() {
 }
 
 func (c *Computer) getIndexedAddressValue(i mix.Instruction) int {
-	value := i.Address.Value()
 	index := i.IndexSpec
+	if index > 6 {
+		panic(fmt.Sprintf("index spec out of range: %v", index))
+	}
+
+	value := i.Address.Value()
 	if index == 0 {
 		return value
 	}
