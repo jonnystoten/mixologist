@@ -1,0 +1,9 @@
+SRC		EQU		1000
+DEST	EQU		2000
+			ORIG	SRC
+			CON		99999999
+			ORIG	0
+			OUT		SRC(3)
+			IOC		-1(3)
+			IN		DEST(3)
+			HLT

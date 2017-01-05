@@ -180,20 +180,9 @@ func (a *Assembler) visitLiteralConstant(literal LiteralConstant) int {
 }
 
 func (a *Assembler) assembleAlfStatement(stmt AlfStatement) mix.Word {
-	word := mix.Word{}
-
 	charcode := stmt.CharCode
 	inner := charcode[1 : len(charcode)-1]
-
-	index := 0 // can't use index from range because unicode
-	for _, char := range inner {
-		log.Printf("%v: %v", index, char)
-		code := mix.CharCodeTable[char]
-		word.Bytes[index] = code
-		index++
-	}
-
-	return word
+	return mix.NewWordFromCharCode(inner)
 }
 
 func (a *Assembler) assembleWValue(wValue WValue) mix.Word {

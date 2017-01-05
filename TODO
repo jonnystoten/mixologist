@@ -1,9 +1,10 @@
 stir TODO:
- - I/O
  - misc ops
  - conversion ops
  - timing
  - decimal bytes
+ - terminal I/O
+ - paper tape
 
 shake TODO:
  - END
