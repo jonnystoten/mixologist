@@ -29,12 +29,13 @@ func main() {
 
 	log.Println("ASSEMBLE:")
 	assembler := shake.NewAssembler()
-	words, err := assembler.Assemble(prog)
+	err := assembler.Assemble(prog)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	for i, word := range words {
+	binary.Write(os.Stdout, binary.LittleEndian, uint16(assembler.ProgramStart))
+	for i, word := range assembler.Words {
 		if word != (mix.Word{}) {
 			log.Printf("%v: %v", i, word)
 		}

@@ -15,6 +15,11 @@ func main() {
 	log.Println("STIR")
 	log.Println("==========")
 	words := []mix.Word{}
+	var start uint16
+	err := binary.Read(os.Stdin, binary.LittleEndian, &start)
+	if err != nil {
+		log.Fatalln(err)
+	}
 
 	for {
 		word := mix.Word{}
@@ -31,8 +36,9 @@ func main() {
 
 	computer := stir.NewComputer()
 	copy(computer.Memory[:], words)
+	computer.ProgramCounter = int(start)
 
-	log.Println("Ready to GO...")
+	log.Printf("Ready to GO... (starting at %v)", computer.ProgramCounter)
 
 	computer.Run()
 

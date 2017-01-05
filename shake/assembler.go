@@ -2,13 +2,13 @@ package shake
 
 import (
 	"fmt"
-	"log"
 
 	"jonnystoten.com/mixologist/mix"
 )
 
 type Assembler struct {
-	words           []mix.Word
+	Words           []mix.Word
+	ProgramStart    int
 	locationCounter int
 	symbolTable     map[string]int
 	futureRefTable  map[string][]int
@@ -16,28 +16,27 @@ type Assembler struct {
 
 func NewAssembler() *Assembler {
 	return &Assembler{
-		words:          make([]mix.Word, 4000),
+		Words:          make([]mix.Word, 4000),
 		symbolTable:    make(map[string]int),
 		futureRefTable: make(map[string][]int),
 	}
 }
 
-func (a *Assembler) Assemble(program *Program) ([]mix.Word, error) {
+func (a *Assembler) Assemble(program *Program) error {
 	for _, stmt := range program.Statements {
 		switch stmt := stmt.(type) {
 		case MixStatement:
 			a.addSymbol(stmt, a.locationCounter)
 			instruction, err := a.assembleMixStatement(stmt)
 			if err != nil {
-				return nil, err
+				return err
 			}
 			word := mix.EncodeInstruction(instruction)
-			a.words[a.locationCounter] = word
+			a.Words[a.locationCounter] = word
 			a.locationCounter++
 		case OrigStatement:
 			a.addSymbol(stmt, a.locationCounter)
 			address := a.getValue(stmt.Address)
-			log.Printf("address: %v", address)
 			a.locationCounter = address
 		case EquStatement:
 			address := a.getValue(stmt.Address)
@@ -46,16 +45,22 @@ func (a *Assembler) Assemble(program *Program) ([]mix.Word, error) {
 			a.addSymbol(stmt, a.locationCounter)
 			address := a.getValue(stmt.Address)
 			word := mix.NewWord(address)
-			a.words[a.locationCounter] = word
+			a.Words[a.locationCounter] = word
 			a.locationCounter++
 		case AlfStatement:
+			a.addSymbol(stmt, a.locationCounter)
 			word := a.assembleAlfStatement(stmt)
-			a.words[a.locationCounter] = word
+			a.Words[a.locationCounter] = word
 			a.locationCounter++
+		case EndStatement:
+			a.addSymbol(stmt, a.locationCounter)
+			address := a.getValue(stmt.Address)
+			a.ProgramStart = address
+			break
 		}
 	}
 
-	return a.words, nil
+	return nil
 }
 
 func (a *Assembler) assembleMixStatement(stmt MixStatement) (mix.Instruction, error) {
@@ -97,7 +102,6 @@ func (a *Assembler) addFutureRef(name string) {
 }
 
 func (a *Assembler) fixupFutureRefs(name string) {
-	log.Printf("Fixing up future refs to '%v'", name)
 	refs, ok := a.futureRefTable[name]
 	if !ok {
 		return
@@ -106,11 +110,10 @@ func (a *Assembler) fixupFutureRefs(name string) {
 	target := a.symbolTable[name]
 
 	for _, ref := range refs {
-		log.Printf("Got a ref to '%v' at %v", name, ref)
 		address := mix.NewAddress(target)
-		a.words[ref].Sign = address.Sign
-		a.words[ref].Bytes[0] = address.Bytes[0]
-		a.words[ref].Bytes[1] = address.Bytes[1]
+		a.Words[ref].Sign = address.Sign
+		a.Words[ref].Bytes[0] = address.Bytes[0]
+		a.Words[ref].Bytes[1] = address.Bytes[1]
 	}
 
 	delete(a.futureRefTable, name)
@@ -131,7 +134,6 @@ func (a *Assembler) visitNumber(number Number) int {
 func (a *Assembler) visitSymbol(symbol Symbol) int {
 	value, ok := a.symbolTable[symbol.Name]
 	if !ok {
-		log.Printf("Adding future ref to '%v'", symbol.Name)
 		a.addFutureRef(symbol.Name)
 		return 0
 	}
