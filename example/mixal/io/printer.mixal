@@ -1,0 +1,8 @@
+DEST	EQU		2000
+			IN		DEST(16)
+			IN		DEST+24(16)
+			OUT		DEST(18)
+			OUT		DEST(18)
+			IOC		0(18)
+			OUT		DEST+24(18)
+			HLT
