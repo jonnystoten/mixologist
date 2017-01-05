@@ -1,0 +1,15 @@
+SRC		EQU		1000
+			ORIG	SRC
+			CON		2345
+			CON		-7777
+			CON		2352345
+			CON		5345
+			CON		23545
+			CON		5
+			CON		5
+			CON		-65
+			CON		7777
+			CON		300
+			ORIG	0
+			OUT		SRC(0)
+			HLT

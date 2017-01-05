@@ -36,13 +36,13 @@ func setupIODevices(computer *Computer) {
 	computer.IODevices = make([]IODevice, 19)
 	for i := 0; i < 8; i++ {
 		filename := fmt.Sprintf("%v/tape%v.dat", ioDir, i)
-		os.Create(filename)
+		//os.Create(filename)
 		tu := NewTapeUnit(computer, filename)
 		computer.IODevices[i] = tu
 	}
 	for i := 8; i < 16; i++ {
 		filename := fmt.Sprintf("%v/disk%v.dat", ioDir, i)
-		os.Create(filename)
+		//os.Create(filename)
 		dd := NewDiskDrumUnit(computer, filename)
 		computer.IODevices[i] = dd
 	}
