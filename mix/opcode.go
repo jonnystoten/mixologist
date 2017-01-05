@@ -192,7 +192,7 @@ var OperationTable = map[string]struct {
 	"ST5":  {ST5, 5},
 	"ST6":  {ST6, 5},
 	"STX":  {STX, 5},
-	"STJ":  {STJ, 5},
+	"STJ":  {STJ, 2},
 	"STZ":  {STZ, 5},
 	"JBUS": {JBUS, 0},
 	"IOC":  {IOC, 0},

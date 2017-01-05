@@ -19,8 +19,8 @@ func TestJMP(t *testing.T) {
 	if actualPC != 1000 {
 		t.Errorf("Expected PC to be %+v, actual %+v", 1000, actualPC)
 	}
-	if actualJ != mix.NewAddress(100) {
-		t.Errorf("Expected rJ to be %+v, actual %+v", mix.NewAddress(100), actualJ)
+	if actualJ != mix.NewAddress(101) {
+		t.Errorf("Expected rJ to be %+v, actual %+v", mix.NewAddress(101), actualJ)
 	}
 }
 
@@ -54,7 +54,7 @@ func TestJOV(t *testing.T) {
 		},
 		{
 			false,
-			100,
+			101,
 		},
 	}
 
@@ -85,7 +85,7 @@ func TestJNOV(t *testing.T) {
 	}{
 		{
 			true,
-			100,
+			101,
 		},
 		{
 			false,
@@ -124,11 +124,11 @@ func TestJL(t *testing.T) {
 		},
 		{
 			mix.Equal,
-			100,
+			101,
 		},
 		{
 			mix.Greater,
-			100,
+			101,
 		},
 	}
 
@@ -155,7 +155,7 @@ func TestJE(t *testing.T) {
 	}{
 		{
 			mix.Less,
-			100,
+			101,
 		},
 		{
 			mix.Equal,
@@ -163,7 +163,7 @@ func TestJE(t *testing.T) {
 		},
 		{
 			mix.Greater,
-			100,
+			101,
 		},
 	}
 
@@ -190,11 +190,11 @@ func TestJG(t *testing.T) {
 	}{
 		{
 			mix.Less,
-			100,
+			101,
 		},
 		{
 			mix.Equal,
-			100,
+			101,
 		},
 		{
 			mix.Greater,
@@ -225,7 +225,7 @@ func TestJGE(t *testing.T) {
 	}{
 		{
 			mix.Less,
-			100,
+			101,
 		},
 		{
 			mix.Equal,
@@ -264,7 +264,7 @@ func TestJNE(t *testing.T) {
 		},
 		{
 			mix.Equal,
-			100,
+			101,
 		},
 		{
 			mix.Greater,
@@ -303,7 +303,7 @@ func TestJLE(t *testing.T) {
 		},
 		{
 			mix.Greater,
-			100,
+			101,
 		},
 	}
 
@@ -330,7 +330,7 @@ func TestJAN(t *testing.T) {
 	}{
 		{
 			mix.NewWord(5000),
-			100,
+			101,
 		},
 		{
 			mix.NewWord(-5000),
@@ -338,7 +338,7 @@ func TestJAN(t *testing.T) {
 		},
 		{
 			mix.NewWord(0),
-			100,
+			101,
 		},
 	}
 
@@ -365,11 +365,11 @@ func TestJAZ(t *testing.T) {
 	}{
 		{
 			mix.NewWord(5000),
-			100,
+			101,
 		},
 		{
 			mix.NewWord(-5000),
-			100,
+			101,
 		},
 		{
 			mix.NewWord(0),
@@ -404,11 +404,11 @@ func TestJAP(t *testing.T) {
 		},
 		{
 			mix.NewWord(-5000),
-			100,
+			101,
 		},
 		{
 			mix.NewWord(0),
-			100,
+			101,
 		},
 	}
 
@@ -439,7 +439,7 @@ func TestJANN(t *testing.T) {
 		},
 		{
 			mix.NewWord(-5000),
-			100,
+			101,
 		},
 		{
 			mix.NewWord(0),
@@ -478,7 +478,7 @@ func TestJANZ(t *testing.T) {
 		},
 		{
 			mix.NewWord(0),
-			100,
+			101,
 		},
 	}
 
@@ -505,7 +505,7 @@ func TestJANP(t *testing.T) {
 	}{
 		{
 			mix.NewWord(5000),
-			100,
+			101,
 		},
 		{
 			mix.NewWord(-5000),
@@ -540,7 +540,7 @@ func TestJXN(t *testing.T) {
 	}{
 		{
 			mix.NewWord(5000),
-			100,
+			101,
 		},
 		{
 			mix.NewWord(-5000),
@@ -548,7 +548,7 @@ func TestJXN(t *testing.T) {
 		},
 		{
 			mix.NewWord(0),
-			100,
+			101,
 		},
 	}
 
@@ -575,11 +575,11 @@ func TestJXZ(t *testing.T) {
 	}{
 		{
 			mix.NewWord(5000),
-			100,
+			101,
 		},
 		{
 			mix.NewWord(-5000),
-			100,
+			101,
 		},
 		{
 			mix.NewWord(0),
@@ -614,11 +614,11 @@ func TestJXP(t *testing.T) {
 		},
 		{
 			mix.NewWord(-5000),
-			100,
+			101,
 		},
 		{
 			mix.NewWord(0),
-			100,
+			101,
 		},
 	}
 
@@ -649,7 +649,7 @@ func TestJXNN(t *testing.T) {
 		},
 		{
 			mix.NewWord(-5000),
-			100,
+			101,
 		},
 		{
 			mix.NewWord(0),
@@ -688,7 +688,7 @@ func TestJXNZ(t *testing.T) {
 		},
 		{
 			mix.NewWord(0),
-			100,
+			101,
 		},
 	}
 
@@ -715,7 +715,7 @@ func TestJXNP(t *testing.T) {
 	}{
 		{
 			mix.NewWord(5000),
-			100,
+			101,
 		},
 		{
 			mix.NewWord(-5000),
@@ -750,7 +750,7 @@ func TestJiN(t *testing.T) {
 	}{
 		{
 			mix.NewAddress(5000),
-			100,
+			101,
 		},
 		{
 			mix.NewAddress(-5000),
@@ -758,7 +758,7 @@ func TestJiN(t *testing.T) {
 		},
 		{
 			mix.NewAddress(0),
-			100,
+			101,
 		},
 	}
 
@@ -785,11 +785,11 @@ func TestJiZ(t *testing.T) {
 	}{
 		{
 			mix.NewAddress(5000),
-			100,
+			101,
 		},
 		{
 			mix.NewAddress(-5000),
-			100,
+			101,
 		},
 		{
 			mix.NewAddress(0),
@@ -824,11 +824,11 @@ func TestJiP(t *testing.T) {
 		},
 		{
 			mix.NewAddress(-5000),
-			100,
+			101,
 		},
 		{
 			mix.NewAddress(0),
-			100,
+			101,
 		},
 	}
 
@@ -859,7 +859,7 @@ func TestJiNN(t *testing.T) {
 		},
 		{
 			mix.NewAddress(-5000),
-			100,
+			101,
 		},
 		{
 			mix.NewAddress(0),
@@ -898,7 +898,7 @@ func TestJiNZ(t *testing.T) {
 		},
 		{
 			mix.NewAddress(0),
-			100,
+			101,
 		},
 	}
 
@@ -925,7 +925,7 @@ func TestJiNP(t *testing.T) {
 	}{
 		{
 			mix.NewAddress(5000),
-			100,
+			101,
 		},
 		{
 			mix.NewAddress(-5000),

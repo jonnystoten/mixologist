@@ -49,29 +49,17 @@ func (op RegisterJumpOp) Execute(c *Computer) {
 
 	switch op.FieldSpec {
 	case 0: // JAN
-		if value < 0 {
-			jump(address, c)
-		}
+		conditionalJump(value < 0, address, c)
 	case 1: // JAZ
-		if value == 0 {
-			jump(address, c)
-		}
+		conditionalJump(value == 0, address, c)
 	case 2: // JAP
-		if value > 0 {
-			jump(address, c)
-		}
+		conditionalJump(value > 0, address, c)
 	case 3: // JANN
-		if value >= 0 {
-			jump(address, c)
-		}
+		conditionalJump(value >= 0, address, c)
 	case 4: // JANZ
-		if value != 0 {
-			jump(address, c)
-		}
+		conditionalJump(value != 0, address, c)
 	case 5: // JANP
-		if value <= 0 {
-			jump(address, c)
-		}
+		conditionalJump(value <= 0, address, c)
 	}
 }
 
@@ -83,19 +71,19 @@ func (op IOJumpOp) Execute(c *Computer) {
 
 	switch op.OpCode {
 	case mix.JRED:
-		if !device.Busy() {
-			jump(address, c)
-		}
+		conditionalJump(!device.Busy(), address, c)
 	case mix.JBUS:
-		if device.Busy() {
-			jump(address, c)
-		}
+		conditionalJump(device.Busy(), address, c)
 	}
 }
 
 func jump(address int, c *Computer) {
-	c.JumpAddress = mix.NewAddress(c.ProgramCounter)
+	c.JumpAddress = mix.NewAddress(c.ProgramCounter + 1)
 	c.ProgramCounter = address
+}
+
+func noJump(c *Computer) {
+	c.ProgramCounter++
 }
 
 func jumpSaveJ(address int, c *Computer) {
@@ -103,10 +91,16 @@ func jumpSaveJ(address int, c *Computer) {
 }
 
 func jumpOnOverflow(address int, c *Computer, overflow bool) {
-	if c.Overflow == overflow {
-		jump(address, c)
-	}
+	conditionalJump(c.Overflow == overflow, address, c)
 	c.Overflow = false
+}
+
+func conditionalJump(condition bool, address int, c *Computer) {
+	if condition {
+		jump(address, c)
+	} else {
+		noJump(c)
+	}
 }
 
 func jumpOnComparison(address int, c *Computer, comparisons ...mix.Comparison) {
@@ -116,4 +110,5 @@ func jumpOnComparison(address int, c *Computer, comparisons ...mix.Comparison) {
 			return
 		}
 	}
+	noJump(c)
 }

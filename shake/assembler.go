@@ -81,6 +81,13 @@ func (a *Assembler) assembleMixStatement(stmt MixStatement) (mix.Instruction, er
 		instruction.FieldSpec = byte(a.getValue(stmt.FPart))
 	}
 
+	switch stmt.IndexPart.(type) {
+	case Nothing:
+		instruction.IndexSpec = 0
+	default:
+		instruction.IndexSpec = byte(a.getValue(stmt.IndexPart))
+	}
+
 	return instruction, nil
 }
 

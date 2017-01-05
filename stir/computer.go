@@ -76,6 +76,7 @@ func (c *Computer) FetchDecodeExecute() {
 	switch operation.(type) {
 	case JumpOp:
 	case RegisterJumpOp:
+	case IOJumpOp:
 	default:
 		c.ProgramCounter++
 	}
