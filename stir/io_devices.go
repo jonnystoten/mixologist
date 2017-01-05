@@ -504,7 +504,20 @@ func (lp *LinePrinter) Write(words []mix.Word) error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
 
+func (lp *LinePrinter) Control(_ int) error {
+	file, err := os.OpenFile(lp.filename, os.O_WRONLY|os.O_APPEND, os.ModeAppend)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	_, err = file.WriteString("=== PAGE BREAK ===\n")
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
