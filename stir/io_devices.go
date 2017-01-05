@@ -2,6 +2,7 @@ package stir
 
 import (
 	"encoding/binary"
+	"fmt"
 	"io"
 	"os"
 
@@ -17,14 +18,26 @@ type ioMessage struct {
 
 type IODevice interface {
 	Start()
-	Channel() chan<- ioMessage
-	BlockSize() int
 	Busy() bool
 	SetBusy()
 	SetReady()
+	BlockSize() int
 	Computer() *Computer
+	Channel() chan<- ioMessage
+}
+
+type InputDevice interface {
+	IODevice
 	Read(words []mix.Word) error
+}
+
+type OutputDevice interface {
+	IODevice
 	Write(words []mix.Word) error
+}
+
+type ControllableDevice interface {
+	IODevice
 	Control(m int) error
 }
 
@@ -35,18 +48,33 @@ func ioAction(d IODevice, message ioMessage) {
 	var err error
 	switch message.op {
 	case mix.IN:
-		err = read(d, message.m, d.Computer())
+		inputD, ok := d.(InputDevice)
+		if !ok {
+			err = fmt.Errorf("IN used on non-input device")
+		} else {
+			err = read(inputD, message.m, inputD.Computer())
+		}
 	case mix.OUT:
-		err = write(d, message.m, d.Computer())
+		outputD, ok := d.(OutputDevice)
+		if !ok {
+			err = fmt.Errorf("IN used on non-input device")
+		} else {
+			err = write(outputD, message.m, outputD.Computer())
+		}
 	case mix.IOC:
-		err = d.Control(message.m)
+		controlD, ok := d.(ControllableDevice)
+		if !ok {
+			err = fmt.Errorf("IOC used on non-controllable device")
+		} else {
+			err = controlD.Control(message.m)
+		}
 	}
 	if err != nil {
 		panic(err)
 	}
 }
 
-func read(d IODevice, address int, c *Computer) error {
+func read(d InputDevice, address int, c *Computer) error {
 	words := make([]mix.Word, d.BlockSize())
 	err := d.Read(words)
 	if err != nil {
@@ -60,7 +88,7 @@ func read(d IODevice, address int, c *Computer) error {
 	return nil
 }
 
-func write(d IODevice, address int, c *Computer) error {
+func write(d OutputDevice, address int, c *Computer) error {
 	words := make([]mix.Word, d.BlockSize())
 	for i := 0; i < d.BlockSize(); i++ {
 		words[i] = c.Memory[address+i]
