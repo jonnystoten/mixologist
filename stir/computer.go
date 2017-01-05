@@ -33,7 +33,7 @@ func NewComputer() *Computer {
 func setupIODevices(computer *Computer) {
 	ioDir := fmt.Sprintf("%v/.stir", os.Getenv("HOME"))
 	os.Mkdir(ioDir, 0755)
-	computer.IODevices = make([]IODevice, 18)
+	computer.IODevices = make([]IODevice, 19)
 	for i := 0; i < 8; i++ {
 		filename := fmt.Sprintf("%v/tape%v.dat", ioDir, i)
 		os.Create(filename)
@@ -52,6 +52,9 @@ func setupIODevices(computer *Computer) {
 	os.Create(fmt.Sprintf("%v/cardwriter.dat", ioDir))
 	cw := NewCardWriter(computer, fmt.Sprintf("%v/cardwriter.dat", ioDir))
 	computer.IODevices[17] = cw
+	os.Create(fmt.Sprintf("%v/lineprinter.dat", ioDir))
+	lp := NewLinePrinter(computer, fmt.Sprintf("%v/lineprinter.dat", ioDir))
+	computer.IODevices[18] = lp
 
 	computer.IOWaitGroup = &sync.WaitGroup{}
 	for _, device := range computer.IODevices {
