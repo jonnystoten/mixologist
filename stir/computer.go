@@ -18,7 +18,7 @@ type Computer struct {
 	ProgramCounter int
 	Overflow       bool
 	Comparison     mix.Comparison
-	IODevices      [20]IODevice
+	IODevices      []IODevice
 	IOWaitGroup    *sync.WaitGroup
 }
 
@@ -26,16 +26,37 @@ func NewComputer() *Computer {
 	computer := &Computer{}
 	computer.Accumulator = mix.Word{}
 	computer.Extension = mix.Word{}
-	computer.IODevices = [20]IODevice{}
+	setupIODevices(computer)
+	return computer
+}
+
+func setupIODevices(computer *Computer) {
+	ioDir := fmt.Sprintf("%v/.stir", os.Getenv("HOME"))
+	os.Mkdir(ioDir, 0755)
+	computer.IODevices = make([]IODevice, 18)
 	for i := 0; i < 8; i++ {
-		filename := fmt.Sprintf("tape%v.dat", i)
+		filename := fmt.Sprintf("%v/tape%v.dat", ioDir, i)
 		os.Create(filename)
 		tu := NewTapeUnit(computer, filename)
-		tu.Start()
 		computer.IODevices[i] = tu
 	}
+	for i := 8; i < 16; i++ {
+		filename := fmt.Sprintf("%v/disk%v.dat", ioDir, i)
+		os.Create(filename)
+		dd := NewDiskDrumUnit(computer, filename)
+		computer.IODevices[i] = dd
+	}
+	//os.Create(fmt.Sprintf("%v/cardreader.dat", ioDir))
+	cr := NewCardReader(computer, fmt.Sprintf("%v/cardreader.dat", ioDir))
+	computer.IODevices[16] = cr
+	os.Create(fmt.Sprintf("%v/cardwriter.dat", ioDir))
+	cw := NewCardWriter(computer, fmt.Sprintf("%v/cardwriter.dat", ioDir))
+	computer.IODevices[17] = cw
+
 	computer.IOWaitGroup = &sync.WaitGroup{}
-	return computer
+	for _, device := range computer.IODevices {
+		device.Start()
+	}
 }
 
 func (c *Computer) Run() {
