@@ -1,3 +1,6 @@
+  ORIG  1000
+  CON   99999999
+  ORIG  1
 	OUT		1000(0)
 	IN		2000(0)
 	HLT
