@@ -9,84 +9,65 @@ import (
 	"jonnystoten.com/mixologist/mix"
 )
 
-type ioCom struct {
-	rwc     string
-	address int
+var wordSizeOnDisk = binary.Size(&mix.Word{})
+
+type ioMessage struct {
+	op mix.OpCode
+	m  int
 }
 
 type IODevice interface {
 	Start()
-	ReadBlock(address int)
-	WriteBlock(address int)
-	Control(m int)
+	Channel() chan<- ioMessage
 	BlockSize() int
+	Busy() bool
 }
 
 type TapeUnit struct {
 	computer *Computer
 	filename string
 	position int
-	ch       chan ioCom
+	busy     bool
+	ch       chan ioMessage
 }
 
 func NewTapeUnit(computer *Computer, filename string) *TapeUnit {
 	return &TapeUnit{
 		computer: computer,
 		filename: filename,
-		ch:       make(chan ioCom)}
+		ch:       make(chan ioMessage)}
 }
 
 func (t *TapeUnit) Start() {
 	go func() {
-		for {
-			select {
-			case com := <-t.ch:
-				//time.Sleep(1 * time.Second)
-				switch com.rwc {
-				case "r":
-					log.Println("read recv")
-					err := read(t, com.address)
-					if err != nil {
-						panic(err)
-					}
-				case "w":
-					log.Println("write recv")
-					err := write(t, com.address)
-					if err != nil {
-						panic(err)
-					}
-				case "c":
-					log.Println("control recv")
-					err := control(t, com.address)
-					if err != nil {
-						panic(err)
-					}
-				}
-			default:
+		for message := range t.ch {
+			t.busy = true
+
+			var err error
+			switch message.op {
+			case mix.IN:
+				log.Println("read recv")
+				err = read(t, message.m)
+			case mix.OUT:
+				log.Println("write recv")
+				err = write(t, message.m)
+			case mix.IOC:
+				log.Println("control recv")
+				err = control(t, message.m)
+			}
+			if err != nil {
+				panic(err)
 			}
 		}
 	}()
 }
 
-func (t *TapeUnit) ReadBlock(address int) {
-	t.computer.IOWaitGroup.Add(1)
-	log.Println("blocked trying to read")
-	t.ch <- ioCom{"r", address}
-	log.Println("unblocked, ready to read")
+func (t *TapeUnit) Channel() chan<- ioMessage {
+	return t.ch
 }
 
-func (t *TapeUnit) WriteBlock(address int) {
-	t.computer.IOWaitGroup.Add(1)
-	log.Println("blocked trying to write")
-	t.ch <- ioCom{"w", address}
-	log.Println("unblocked, ready to write")
-}
-
-func (t *TapeUnit) Control(m int) {
-	t.computer.IOWaitGroup.Add(1)
-	log.Println("blocked trying to control")
-	t.ch <- ioCom{"c", m}
-	log.Println("unblocked, ready to control")
+func (t *TapeUnit) Busy() bool {
+	return t.busy
 }
 
 func (t *TapeUnit) BlockSize() int {
@@ -94,14 +75,18 @@ func (t *TapeUnit) BlockSize() int {
 }
 
 func read(t *TapeUnit, address int) error {
-	defer t.computer.IOWaitGroup.Done()
+	defer func() {
+		t.computer.IOWaitGroup.Done()
+		t.busy = false
+	}()
+
 	file, err := os.Open(t.filename)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
 
-	file.Seek(int64(t.position), io.SeekStart)
+	file.Seek(int64(t.position*wordSizeOnDisk), io.SeekStart)
 	words := make([]mix.Word, t.BlockSize())
 	err = binary.Read(file, binary.LittleEndian, words)
 	if err != nil {
@@ -117,7 +102,11 @@ func read(t *TapeUnit, address int) error {
 }
 
 func write(t *TapeUnit, address int) error {
-	defer t.computer.IOWaitGroup.Done()
+	defer func() {
+		t.computer.IOWaitGroup.Done()
+		t.busy = false
+	}()
+
 	file, err := os.OpenFile(t.filename, os.O_WRONLY, 0)
 	if err != nil {
 		return err
@@ -129,7 +118,7 @@ func write(t *TapeUnit, address int) error {
 		words[i] = t.computer.Memory[address+i]
 	}
 
-	file.Seek(int64(t.position), io.SeekStart)
+	file.Seek(int64(t.position*wordSizeOnDisk), io.SeekStart)
 	err = binary.Write(file, binary.LittleEndian, words)
 	if err != nil {
 		return err
@@ -140,7 +129,10 @@ func write(t *TapeUnit, address int) error {
 }
 
 func control(t *TapeUnit, m int) error {
-	defer t.computer.IOWaitGroup.Done()
+	defer func() {
+		t.computer.IOWaitGroup.Done()
+		t.busy = false
+	}()
 
 	if m == 0 {
 		t.position = 0

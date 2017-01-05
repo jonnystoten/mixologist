@@ -1,37 +1,13 @@
 package stir
 
-import (
-	"log"
+import "jonnystoten.com/mixologist/mix"
 
-	"jonnystoten.com/mixologist/mix"
-)
+type InputOutputOp struct{ mix.Instruction }
 
-type InputOp struct{ mix.Instruction }
-
-func (op InputOp) Execute(c *Computer) {
-	log.Println("IN")
+func (op InputOutputOp) Execute(c *Computer) {
 	address := c.getIndexedAddressValue(op.Instruction)
 	device := c.IODevices[op.FieldSpec]
 
-	device.ReadBlock(address)
-}
-
-type OutputOp struct{ mix.Instruction }
-
-func (op OutputOp) Execute(c *Computer) {
-	log.Println("OUT")
-	address := c.getIndexedAddressValue(op.Instruction)
-	device := c.IODevices[op.FieldSpec]
-
-	device.WriteBlock(address)
-}
-
-type IOControlOp struct{ mix.Instruction }
-
-func (op IOControlOp) Execute(c *Computer) {
-	log.Println("IOC")
-	address := c.getIndexedAddressValue(op.Instruction)
-	device := c.IODevices[op.FieldSpec]
-
-	device.Control(address)
+	c.IOWaitGroup.Add(1)
+	device.Channel() <- ioMessage{op.OpCode, address}
 }
