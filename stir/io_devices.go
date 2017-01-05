@@ -3,7 +3,6 @@ package stir
 import (
 	"encoding/binary"
 	"io"
-	"log"
 	"os"
 
 	"jonnystoten.com/mixologist/mix"
@@ -21,6 +20,58 @@ type IODevice interface {
 	Channel() chan<- ioMessage
 	BlockSize() int
 	Busy() bool
+	SetBusy()
+	SetReady()
+	Computer() *Computer
+	Read(words []mix.Word) error
+	Write(words []mix.Word) error
+	Control(m int) error
+}
+
+func ioAction(d IODevice, message ioMessage) {
+	d.SetBusy()
+	defer d.SetReady()
+
+	var err error
+	switch message.op {
+	case mix.IN:
+		err = read(d, message.m, d.Computer())
+	case mix.OUT:
+		err = write(d, message.m, d.Computer())
+	case mix.IOC:
+		err = d.Control(message.m)
+	}
+	if err != nil {
+		panic(err)
+	}
+}
+
+func read(d IODevice, address int, c *Computer) error {
+	words := make([]mix.Word, d.BlockSize())
+	err := d.Read(words)
+	if err != nil {
+		return err
+	}
+
+	for i := 0; i < d.BlockSize(); i++ {
+		c.Memory[address+i] = words[i]
+	}
+
+	return nil
+}
+
+func write(d IODevice, address int, c *Computer) error {
+	words := make([]mix.Word, d.BlockSize())
+	for i := 0; i < d.BlockSize(); i++ {
+		words[i] = c.Memory[address+i]
+	}
+
+	err := d.Write(words)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 type TapeUnit struct {
@@ -41,23 +92,7 @@ func NewTapeUnit(computer *Computer, filename string) *TapeUnit {
 func (t *TapeUnit) Start() {
 	go func() {
 		for message := range t.ch {
-			t.busy = true
-
-			var err error
-			switch message.op {
-			case mix.IN:
-				log.Println("read recv")
-				err = read(t, message.m)
-			case mix.OUT:
-				log.Println("write recv")
-				err = write(t, message.m)
-			case mix.IOC:
-				log.Println("control recv")
-				err = control(t, message.m)
-			}
-			if err != nil {
-				panic(err)
-			}
+			ioAction(t, message)
 		}
 	}()
 }
@@ -66,20 +101,28 @@ func (t *TapeUnit) Channel() chan<- ioMessage {
 	return t.ch
 }
 
+func (t *TapeUnit) Computer() *Computer {
+	return t.computer
+}
+
 func (t *TapeUnit) Busy() bool {
 	return t.busy
+}
+
+func (t *TapeUnit) SetBusy() {
+	t.busy = true
+}
+
+func (t *TapeUnit) SetReady() {
+	t.busy = false
+	t.computer.IOWaitGroup.Done()
 }
 
 func (t *TapeUnit) BlockSize() int {
 	return 100
 }
 
-func read(t *TapeUnit, address int) error {
-	defer func() {
-		t.computer.IOWaitGroup.Done()
-		t.busy = false
-	}()
-
+func (t *TapeUnit) Read(words []mix.Word) error {
 	file, err := os.Open(t.filename)
 	if err != nil {
 		return err
@@ -87,36 +130,22 @@ func read(t *TapeUnit, address int) error {
 	defer file.Close()
 
 	file.Seek(int64(t.position*wordSizeOnDisk), io.SeekStart)
-	words := make([]mix.Word, t.BlockSize())
+
 	err = binary.Read(file, binary.LittleEndian, words)
 	if err != nil {
 		return err
-	}
-
-	for i := 0; i < t.BlockSize(); i++ {
-		t.computer.Memory[address+i] = words[i]
 	}
 
 	t.position += t.BlockSize()
 	return nil
 }
 
-func write(t *TapeUnit, address int) error {
-	defer func() {
-		t.computer.IOWaitGroup.Done()
-		t.busy = false
-	}()
-
+func (t *TapeUnit) Write(words []mix.Word) error {
 	file, err := os.OpenFile(t.filename, os.O_WRONLY, 0)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
-
-	words := make([]mix.Word, t.BlockSize())
-	for i := 0; i < t.BlockSize(); i++ {
-		words[i] = t.computer.Memory[address+i]
-	}
 
 	file.Seek(int64(t.position*wordSizeOnDisk), io.SeekStart)
 	err = binary.Write(file, binary.LittleEndian, words)
@@ -128,12 +157,7 @@ func write(t *TapeUnit, address int) error {
 	return nil
 }
 
-func control(t *TapeUnit, m int) error {
-	defer func() {
-		t.computer.IOWaitGroup.Done()
-		t.busy = false
-	}()
-
+func (t *TapeUnit) Control(m int) error {
 	if m == 0 {
 		t.position = 0
 		return nil
