@@ -39,6 +39,8 @@ func NewOperation(instruction mix.Instruction) Operation {
 		return JumpOp{instruction}
 	case mix.JAN <= instruction.OpCode && instruction.OpCode <= mix.JXNP:
 		return RegisterJumpOp{instruction}
+	case instruction.OpCode == mix.JBUS || instruction.OpCode == mix.JRED:
+		return IOJumpOp{instruction}
 	case mix.ENTA <= instruction.OpCode && instruction.OpCode <= mix.ENTX && (instruction.FieldSpec == 2 || instruction.FieldSpec == 3):
 		return EnterOp{instruction}
 	case mix.INCA <= instruction.OpCode && instruction.OpCode <= mix.INCX && instruction.FieldSpec == 0:

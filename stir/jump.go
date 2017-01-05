@@ -75,6 +75,24 @@ func (op RegisterJumpOp) Execute(c *Computer) {
 	}
 }
 
+type IOJumpOp struct{ mix.Instruction }
+
+func (op IOJumpOp) Execute(c *Computer) {
+	address := c.getIndexedAddressValue(op.Instruction)
+	device := c.IODevices[op.FieldSpec]
+
+	switch op.OpCode {
+	case mix.JRED:
+		if !device.Busy() {
+			jump(address, c)
+		}
+	case mix.JBUS:
+		if device.Busy() {
+			jump(address, c)
+		}
+	}
+}
+
 func jump(address int, c *Computer) {
 	c.JumpAddress = mix.NewAddress(c.ProgramCounter)
 	c.ProgramCounter = address
