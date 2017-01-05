@@ -439,6 +439,75 @@ func (cw *CardWriter) Write(words []mix.Word) error {
 	return nil
 }
 
+type LinePrinter struct {
+	computer *Computer
+	filename string
+	busy     bool
+	ch       chan ioMessage
+}
+
+func NewLinePrinter(computer *Computer, filename string) *LinePrinter {
+	return &LinePrinter{
+		computer: computer,
+		filename: filename,
+		ch:       make(chan ioMessage)}
+}
+
+func (lp *LinePrinter) Start() {
+	go func() {
+		for message := range lp.ch {
+			ioAction(lp, message)
+		}
+	}()
+}
+
+func (lp *LinePrinter) Channel() chan<- ioMessage {
+	return lp.ch
+}
+
+func (lp *LinePrinter) Computer() *Computer {
+	return lp.computer
+}
+
+func (lp *LinePrinter) Busy() bool {
+	return lp.busy
+}
+
+func (lp *LinePrinter) SetBusy() {
+	lp.busy = true
+}
+
+func (lp *LinePrinter) SetReady() {
+	lp.busy = false
+	lp.computer.IOWaitGroup.Done()
+}
+
+func (lp *LinePrinter) BlockSize() int {
+	return 24
+}
+
+func (lp *LinePrinter) Write(words []mix.Word) error {
+	file, err := os.OpenFile(lp.filename, os.O_WRONLY|os.O_APPEND, os.ModeAppend)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	buf := bytes.Buffer{}
+	for _, word := range words {
+		str := mix.WordToCharCodeString(word)
+		buf.WriteString(str)
+	}
+	buf.WriteRune('\n')
+
+	_, err = file.WriteString(buf.String())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func spacePad(str string) string {
 	bytes := make([]byte, 5)
 	for i := 0; i < 5; i++ {
