@@ -30,11 +30,7 @@ func NewComputer() *Computer {
 	for i := 0; i < 8; i++ {
 		filename := fmt.Sprintf("tape%v.dat", i)
 		os.Create(filename)
-		tu := &TapeUnit{
-			computer: computer,
-			filename: filename,
-			ch:       make(chan ioCom),
-		}
+		tu := NewTapeUnit(computer, filename)
 		tu.Start()
 		computer.IODevices[i] = tu
 	}

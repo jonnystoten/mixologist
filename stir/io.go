@@ -25,3 +25,13 @@ func (op OutputOp) Execute(c *Computer) {
 
 	device.WriteBlock(address)
 }
+
+type IOControlOp struct{ mix.Instruction }
+
+func (op IOControlOp) Execute(c *Computer) {
+	log.Println("IOC")
+	address := c.getIndexedAddressValue(op.Instruction)
+	device := c.IODevices[op.FieldSpec]
+
+	device.Control(address)
+}

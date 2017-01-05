@@ -33,6 +33,8 @@ func NewOperation(instruction mix.Instruction) Operation {
 		return LoadOp{instruction}
 	case mix.STA <= instruction.OpCode && instruction.OpCode <= mix.STZ:
 		return StoreOp{instruction}
+	case instruction.OpCode == mix.IOC:
+		return IOControlOp{instruction}
 	case instruction.OpCode == mix.IN:
 		return InputOp{instruction}
 	case instruction.OpCode == mix.OUT:
