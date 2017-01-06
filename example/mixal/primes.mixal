@@ -23,18 +23,18 @@ START 	IOC		0(PRINTER)			# Skip to new page.
 				JG		6B							# To P6 if Q > PRIME[K]
 				JMP		2B							# Otherwise N is prime.
 2H			OUT		TITLE(PRINTER)	# P9. Prime title.
-				JBUS	*(PRINTER)
+*				JBUS	*(PRINTER) # not sure why i added this line...
 				ENT4	BUF1+10					# Set B = 1
 				ENT5	-50							# Set M = 0
 2H			INC5	L+1							# Advance M
 4H			LDA		PRIME,5					# P10. Set up line. (Right to left)
-				CHAR	0								# Convert PRIME[M] to decimal.
+				CHAR									# Convert PRIME[M] to decimal.
 				STX		0,4(1:4)
 				DEC4	1
 				DEC5	50							# (rI5 goes down by 50 until
 				J5P		4B							# it becomes nonpositive)
 				OUT		0,4(PRINTER)		# P11. Print line.
-				JBUS	*(PRINTER)
+*				JBUS	*(PRINTER)  # not sure why i added this line...
 				LD4		24,4						# Switch buffers.
 				J5N		2B							# If rI5 == 0, we are done.
 				HLT
