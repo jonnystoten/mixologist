@@ -156,7 +156,9 @@ func (a *Assembler) fixupFutureRefs(name string, notCurrent bool) {
 		a.Words[ref].Bytes[1] = address.Bytes[1]
 	}
 
-	if !keep {
+	if keep {
+		a.futureRefTable[name] = []int{a.locationCounter}
+	} else {
 		delete(a.futureRefTable, name)
 	}
 }
@@ -229,8 +231,8 @@ func (a *Assembler) insertLiteralConstants() {
 	for name, val := range a.literalConstantTable {
 		word := mix.NewWord(val)
 		a.Words[a.locationCounter] = word
-		a.locationCounter++
 		a.addSymbolHere(name, false)
+		a.locationCounter++
 	}
 }
 
