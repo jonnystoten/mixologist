@@ -26,36 +26,42 @@ func (a *Assembler) Assemble(program *Program) error {
 	for _, stmt := range program.Statements {
 		switch stmt := stmt.(type) {
 		case MixStatement:
-			a.addSymbol(stmt, a.locationCounter)
+			a.dealWithNormalSymbolDecl(stmt, a.locationCounter)
 			instruction, err := a.assembleMixStatement(stmt)
 			if err != nil {
 				return err
 			}
 			word := mix.EncodeInstruction(instruction)
 			a.Words[a.locationCounter] = word
+			a.dealWithLocalSymbolDecl(stmt, a.locationCounter)
 			a.locationCounter++
 		case OrigStatement:
-			a.addSymbol(stmt, a.locationCounter)
+			a.dealWithNormalSymbolDecl(stmt, a.locationCounter)
 			address := a.getValue(stmt.Address)
+			a.dealWithLocalSymbolDecl(stmt, a.locationCounter)
 			a.locationCounter = address
 		case EquStatement:
 			address := a.getValue(stmt.Address)
-			a.addSymbol(stmt, address)
+			a.dealWithNormalSymbolDecl(stmt, address) // TODO: need to add a
+			a.dealWithLocalSymbolDecl(stmt, address)  // special case for locals?
 		case ConStatement:
-			a.addSymbol(stmt, a.locationCounter)
+			a.dealWithNormalSymbolDecl(stmt, a.locationCounter)
 			address := a.getValue(stmt.Address)
 			word := mix.NewWord(address)
 			a.Words[a.locationCounter] = word
+			a.dealWithLocalSymbolDecl(stmt, a.locationCounter)
 			a.locationCounter++
 		case AlfStatement:
-			a.addSymbol(stmt, a.locationCounter)
+			a.dealWithNormalSymbolDecl(stmt, a.locationCounter)
 			word := a.assembleAlfStatement(stmt)
 			a.Words[a.locationCounter] = word
+			a.dealWithLocalSymbolDecl(stmt, a.locationCounter)
 			a.locationCounter++
 		case EndStatement:
-			a.addSymbol(stmt, a.locationCounter)
+			a.dealWithNormalSymbolDecl(stmt, a.locationCounter)
 			address := a.getValue(stmt.Address)
 			a.ProgramStart = address
+			a.dealWithLocalSymbolDecl(stmt, a.locationCounter)
 			break
 		}
 	}
@@ -91,11 +97,17 @@ func (a *Assembler) assembleMixStatement(stmt MixStatement) (mix.Instruction, er
 	return instruction, nil
 }
 
-func (a *Assembler) addSymbol(stmt Statement, value int) {
-	symbol := stmt.Symbol()
-	if symbol != nil {
-		a.symbolTable[symbol.Name] = value
-		a.fixupFutureRefs(symbol.Name)
+func (a *Assembler) dealWithNormalSymbolDecl(stmt Statement, value int) {
+	if symbol := stmt.Symbol(); symbol != nil && !symbol.IsLocal() {
+		a.symbolTable[symbol.InternalName()] = value
+		a.fixupFutureRefs(symbol.InternalName(), false)
+	}
+}
+
+func (a *Assembler) dealWithLocalSymbolDecl(stmt Statement, value int) {
+	if symbol := stmt.Symbol(); symbol != nil && symbol.IsLocalDecl() {
+		a.symbolTable[symbol.InternalName()] = value
+		a.fixupFutureRefs(symbol.InternalName(), true)
 	}
 }
 
@@ -108,7 +120,7 @@ func (a *Assembler) addFutureRef(name string) {
 	}
 }
 
-func (a *Assembler) fixupFutureRefs(name string) {
+func (a *Assembler) fixupFutureRefs(name string, notCurrent bool) {
 	refs, ok := a.futureRefTable[name]
 	if !ok {
 		return
@@ -116,14 +128,21 @@ func (a *Assembler) fixupFutureRefs(name string) {
 
 	target := a.symbolTable[name]
 
+	var keep bool
 	for _, ref := range refs {
+		if notCurrent && ref == a.locationCounter {
+			keep = true
+			continue
+		}
 		address := mix.NewAddress(target)
 		a.Words[ref].Sign = address.Sign
 		a.Words[ref].Bytes[0] = address.Bytes[0]
 		a.Words[ref].Bytes[1] = address.Bytes[1]
 	}
 
-	delete(a.futureRefTable, name)
+	if !keep {
+		delete(a.futureRefTable, name)
+	}
 }
 
 func (a *Assembler) getValue(node Node) int {
@@ -139,9 +158,9 @@ func (a *Assembler) visitNumber(number Number) int {
 }
 
 func (a *Assembler) visitSymbol(symbol Symbol) int {
-	value, ok := a.symbolTable[symbol.Name]
-	if !ok {
-		a.addFutureRef(symbol.Name)
+	value, existing := a.symbolTable[symbol.InternalName()]
+	if !existing || symbol.IsLocalForwardRef() {
+		a.addFutureRef(symbol.InternalName())
 		return 0
 	}
 	return value

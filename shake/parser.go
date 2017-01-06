@@ -3,6 +3,7 @@ package shake
 import (
 	"fmt"
 	"io"
+	"regexp"
 
 	"strconv"
 
@@ -37,6 +38,32 @@ func (a Asterisk) Accept(v NodeVisitor) int {
 
 type Symbol struct {
 	Name string
+}
+
+func (s Symbol) InternalName() string {
+	if s.IsLocal() {
+		return fmt.Sprintf("__loc:%v", s.Name[0])
+	}
+	return s.Name
+}
+
+func (s Symbol) IsLocal() bool {
+	return s.IsLocalBackRef() || s.IsLocalForwardRef() || s.IsLocalDecl()
+}
+
+func (s Symbol) IsLocalDecl() bool {
+	match, _ := regexp.MatchString(`\dH`, s.Name)
+	return match
+}
+
+func (s Symbol) IsLocalForwardRef() bool {
+	match, _ := regexp.MatchString(`\dF`, s.Name)
+	return match
+}
+
+func (s Symbol) IsLocalBackRef() bool {
+	match, _ := regexp.MatchString(`\dB`, s.Name)
+	return match
 }
 
 func (s Symbol) Accept(v NodeVisitor) int {

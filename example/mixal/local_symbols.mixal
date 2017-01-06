@@ -1,0 +1,5 @@
+* A weird local symbols edge case (vol 1, p. 151)
+* Should assemble to MOVE -3(10)
+2H	EQU		10
+2H	MOVE	2F(2H)
+2H	EQU		2B-3
