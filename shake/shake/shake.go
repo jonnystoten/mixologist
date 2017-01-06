@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"jonnystoten.com/mixologist/mix"
+	"jonnystoten.com/mixologist/mix/garnish"
 	"jonnystoten.com/mixologist/shake"
 )
 
@@ -37,7 +38,7 @@ func main() {
 	binary.Write(os.Stdout, binary.LittleEndian, uint16(assembler.ProgramStart))
 	for i, word := range assembler.Words {
 		if word != (mix.Word{}) {
-			log.Printf("%v: %v", i, word)
+			log.Printf("%04v: %v", i, garnish.SprintWord(word))
 		}
 		err = binary.Write(os.Stdout, binary.LittleEndian, word)
 		if err != nil {

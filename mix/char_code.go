@@ -78,7 +78,11 @@ func (ccm *CharCodeMap) GetCode(r rune) byte {
 }
 
 func (ccm *CharCodeMap) GetChar(b byte) rune {
-	return ccm.byteToRuneTable[b]
+	r, ok := ccm.byteToRuneTable[b]
+	if !ok {
+		return '~'
+	}
+	return r
 }
 
 func addCharCode(ccm *CharCodeMap, r rune, b byte) {
