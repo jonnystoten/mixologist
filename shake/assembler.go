@@ -7,18 +7,20 @@ import (
 )
 
 type Assembler struct {
-	Words           []mix.Word
-	ProgramStart    int
-	locationCounter int
-	symbolTable     map[string]int
-	futureRefTable  map[string][]int
+	Words                []mix.Word
+	ProgramStart         int
+	locationCounter      int
+	symbolTable          map[string]int
+	futureRefTable       map[string][]int
+	literalConstantTable map[string]int
 }
 
 func NewAssembler() *Assembler {
 	return &Assembler{
-		Words:          make([]mix.Word, 4000),
-		symbolTable:    make(map[string]int),
-		futureRefTable: make(map[string][]int),
+		Words:                make([]mix.Word, 4000),
+		symbolTable:          make(map[string]int),
+		futureRefTable:       make(map[string][]int),
+		literalConstantTable: make(map[string]int),
 	}
 }
 
@@ -42,8 +44,7 @@ func (a *Assembler) Assemble(program *Program) error {
 			a.locationCounter = address
 		case EquStatement:
 			address := a.getValue(stmt.Address)
-			a.dealWithNormalSymbolDecl(stmt, address) // TODO: need to add a
-			a.dealWithLocalSymbolDecl(stmt, address)  // special case for locals?
+			a.dealWithEquStatement(stmt.Symbol(), address)
 		case ConStatement:
 			a.dealWithNormalSymbolDecl(stmt, a.locationCounter)
 			address := a.getValue(stmt.Address)
@@ -65,6 +66,8 @@ func (a *Assembler) Assemble(program *Program) error {
 			break
 		}
 	}
+
+	a.insertLiteralConstants()
 
 	return nil
 }
@@ -97,18 +100,31 @@ func (a *Assembler) assembleMixStatement(stmt MixStatement) (mix.Instruction, er
 	return instruction, nil
 }
 
+func (a *Assembler) dealWithEquStatement(symbol *Symbol, address int) {
+	name := symbol.InternalName()
+	a.symbolTable[name] = address
+	a.fixupFutureRefs(name, symbol.IsLocal())
+}
+
 func (a *Assembler) dealWithNormalSymbolDecl(stmt Statement, value int) {
 	if symbol := stmt.Symbol(); symbol != nil && !symbol.IsLocal() {
-		a.symbolTable[symbol.InternalName()] = value
-		a.fixupFutureRefs(symbol.InternalName(), false)
+		a.addSymbolHere(symbol.InternalName(), false)
 	}
 }
 
 func (a *Assembler) dealWithLocalSymbolDecl(stmt Statement, value int) {
 	if symbol := stmt.Symbol(); symbol != nil && symbol.IsLocalDecl() {
-		a.symbolTable[symbol.InternalName()] = value
-		a.fixupFutureRefs(symbol.InternalName(), true)
+		a.addSymbolHere(symbol.InternalName(), true)
 	}
+}
+
+func (a *Assembler) addSymbolHere(name string, ignoreCurrentForFutureRefs bool) {
+	a.addSymbol(name, a.locationCounter, ignoreCurrentForFutureRefs)
+}
+
+func (a *Assembler) addSymbol(name string, value int, ignoreCurrentForFutureRefs bool) {
+	a.symbolTable[name] = value
+	a.fixupFutureRefs(name, ignoreCurrentForFutureRefs)
 }
 
 func (a *Assembler) addFutureRef(name string) {
@@ -202,9 +218,20 @@ func (a *Assembler) visitWValue(wVal WValue) int {
 }
 
 func (a *Assembler) visitLiteralConstant(literal LiteralConstant) int {
-	_ = a.getValue(literal.Value)
-	// TODO: add future ref
+	value := a.getValue(literal.Value)
+	name := "__literal:" + string(len(a.literalConstantTable))
+	a.literalConstantTable[name] = value
+	a.addFutureRef(name)
 	return 0
+}
+
+func (a *Assembler) insertLiteralConstants() {
+	for name, val := range a.literalConstantTable {
+		word := mix.NewWord(val)
+		a.Words[a.locationCounter] = word
+		a.locationCounter++
+		a.addSymbolHere(name, false)
+	}
 }
 
 func (a *Assembler) assembleAlfStatement(stmt AlfStatement) mix.Word {
