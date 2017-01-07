@@ -27,6 +27,10 @@ func NewOperation(instruction mix.Instruction) Operation {
 		return MulOp{instruction}
 	case instruction.OpCode == mix.DIV:
 		return DivOp{instruction}
+	case instruction.OpCode == mix.NUM && instruction.FieldSpec == 0:
+		return NumOp{instruction}
+	case instruction.OpCode == mix.CHAR && instruction.FieldSpec == 1:
+		return CharOp{instruction}
 	case instruction.OpCode == mix.HLT && instruction.FieldSpec == 2:
 		return HaltOp{instruction}
 	case mix.LDA <= instruction.OpCode && instruction.OpCode <= mix.LDXN:

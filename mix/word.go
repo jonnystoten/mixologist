@@ -36,12 +36,12 @@ func newWordImpl(value int, allowOverflow bool) Word {
 	}
 
 	if allowOverflow {
-		value = value - pow(64, 5)
+		value = value - Pow(64, 5)
 	}
 
 	bytes := [5]byte{}
 	for i := 0; i < 5; i++ {
-		maxVal := pow(64, 4-i)
+		maxVal := Pow(64, 4-i)
 		b := byte(value / maxVal)
 		bytes[i] = b
 		value %= maxVal
@@ -51,7 +51,7 @@ func newWordImpl(value int, allowOverflow bool) Word {
 }
 
 func FitsInWord(value int) bool {
-	max := pow(64, 5) - 1
+	max := Pow(64, 5) - 1
 	return value <= max
 }
 
@@ -64,7 +64,7 @@ func NewWordFromAddress(address Address) Word {
 
 func (w *Word) Value() (value int) {
 	for i := 0; i < 5; i++ {
-		base := pow(64, i)
+		base := Pow(64, i)
 		value += base * int(w.Bytes[4-i])
 	}
 	if w.Sign == Negative {
@@ -116,7 +116,7 @@ func DecodeFieldSpec(fieldSpec byte) (left, right byte) {
 	return
 }
 
-func pow(a, b int) int {
+func Pow(a, b int) int {
 	p := 1
 	for b > 0 {
 		if b&1 != 0 {
