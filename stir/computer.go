@@ -66,6 +66,9 @@ func (c *Computer) Run() {
 	c.Running = true
 	for c.Running {
 		c.FetchDecodeExecute()
+		if c.ProgramCounter >= len(c.Memory) {
+			c.Running = false
+		}
 	}
 }
 
