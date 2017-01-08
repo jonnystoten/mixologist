@@ -178,7 +178,6 @@ func makeGroups(memLocs []int) (groups [][]int) {
 	var group []int
 	lastLoc := memLocs[0] - 1
 	for _, loc := range memLocs {
-		log.Printf("loc = %v, last = %v", loc, lastLoc)
 		if loc != lastLoc+1 || len(group) == 7 { // new card
 			groups = append(groups, group)
 			group = []int{}
@@ -187,14 +186,6 @@ func makeGroups(memLocs []int) (groups [][]int) {
 		lastLoc = loc
 	}
 	groups = append(groups, group)
-
-	for _, x := range groups {
-		log.Print("(")
-		for _, y := range x {
-			log.Print(y)
-		}
-		log.Print(")")
-	}
 	return
 }
 
