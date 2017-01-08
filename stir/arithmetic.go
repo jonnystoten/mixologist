@@ -1,10 +1,6 @@
 package stir
 
-import (
-	"log"
-
-	"jonnystoten.com/mixologist/mix"
-)
+import "jonnystoten.com/mixologist/mix"
 
 type AddOp struct{ mix.Instruction }
 
@@ -32,8 +28,6 @@ func (op SubOp) Execute(c *Computer) {
 	acc := c.Accumulator
 
 	sum := acc.Value() - word.Value()
-
-	log.Printf("SUB result: %v - %v = %v", acc.Value(), word.Value(), sum)
 
 	var result mix.Word
 	if mix.FitsInWord(sum) {

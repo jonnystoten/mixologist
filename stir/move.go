@@ -13,5 +13,5 @@ func (op MoveOp) Execute(c *Computer) {
 		c.Memory[dest+i] = c.Memory[src+i]
 	}
 
-	c.Index[0] = mix.NewAddress(num)
+	c.Index[0] = mix.NewAddress(dest + num)
 }

@@ -65,8 +65,13 @@ func setupIODevices(computer *Computer) {
 }
 
 func (c *Computer) Run() {
+	c.RunInteractive(func() {})
+}
+
+func (c *Computer) RunInteractive(callback func()) {
 	c.Running = true
 	for c.Running {
+		callback()
 		c.FetchDecodeExecute()
 		if c.ProgramCounter >= len(c.Memory) {
 			c.Running = false
@@ -77,7 +82,6 @@ func (c *Computer) Run() {
 func (c *Computer) FetchDecodeExecute() {
 	word := c.Memory[c.ProgramCounter]
 	operation := Decode(word)
-	//log.Printf("Exec %v (%v)", word.Bytes[4], c.ProgramCounter)
 	operation.Execute(c)
 	switch operation.(type) {
 	case JumpOp:

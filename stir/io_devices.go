@@ -9,6 +9,8 @@ import (
 
 	"bufio"
 
+	"sync"
+
 	"jonnystoten.com/mixologist/mix"
 )
 
@@ -24,6 +26,7 @@ type IODevice interface {
 	Busy() bool
 	SetBusy()
 	SetReady()
+	WaitReady()
 	BlockSize() int
 	Computer() *Computer
 	Channel() chan<- ioMessage
@@ -45,7 +48,6 @@ type ControllableDevice interface {
 }
 
 func ioAction(d IODevice, message ioMessage) {
-	d.SetBusy()
 	defer d.SetReady()
 
 	// time.Sleep(2 * time.Second) // artificial slow down of I/O
@@ -113,6 +115,7 @@ type TapeUnit struct {
 	position int
 	busy     bool
 	ch       chan ioMessage
+	wg       sync.WaitGroup
 }
 
 func NewTapeUnit(computer *Computer, filename string) *TapeUnit {
@@ -143,12 +146,19 @@ func (t *TapeUnit) Busy() bool {
 }
 
 func (t *TapeUnit) SetBusy() {
+	t.computer.IOWaitGroup.Add(1)
+	t.wg.Add(1)
 	t.busy = true
 }
 
 func (t *TapeUnit) SetReady() {
 	t.busy = false
+	t.wg.Done()
 	t.computer.IOWaitGroup.Done()
+}
+
+func (t *TapeUnit) WaitReady() {
+	t.wg.Wait()
 }
 
 func (t *TapeUnit) BlockSize() int {
@@ -211,6 +221,7 @@ type DiskDrumUnit struct {
 	filename string
 	busy     bool
 	ch       chan ioMessage
+	wg       sync.WaitGroup
 }
 
 func NewDiskDrumUnit(computer *Computer, filename string) *DiskDrumUnit {
@@ -241,12 +252,19 @@ func (dd *DiskDrumUnit) Busy() bool {
 }
 
 func (dd *DiskDrumUnit) SetBusy() {
+	dd.computer.IOWaitGroup.Add(1)
+	dd.wg.Add(1)
 	dd.busy = true
 }
 
 func (dd *DiskDrumUnit) SetReady() {
 	dd.busy = false
+	dd.wg.Done()
 	dd.computer.IOWaitGroup.Done()
+}
+
+func (dd *DiskDrumUnit) WaitReady() {
+	dd.wg.Wait()
 }
 
 func (dd *DiskDrumUnit) BlockSize() int {
@@ -301,6 +319,7 @@ type CardReader struct {
 	position int
 	busy     bool
 	ch       chan ioMessage
+	wg       sync.WaitGroup
 }
 
 func NewCardReader(computer *Computer, filename string) *CardReader {
@@ -331,12 +350,19 @@ func (cr *CardReader) Busy() bool {
 }
 
 func (cr *CardReader) SetBusy() {
+	cr.computer.IOWaitGroup.Add(1)
+	cr.wg.Add(1)
 	cr.busy = true
 }
 
 func (cr *CardReader) SetReady() {
 	cr.busy = false
+	cr.wg.Done()
 	cr.computer.IOWaitGroup.Done()
+}
+
+func (cr *CardReader) WaitReady() {
+	cr.wg.Wait()
 }
 
 func (cr *CardReader) BlockSize() int {
@@ -375,6 +401,7 @@ type CardWriter struct {
 	filename string
 	busy     bool
 	ch       chan ioMessage
+	wg       sync.WaitGroup
 }
 
 func NewCardWriter(computer *Computer, filename string) *CardWriter {
@@ -405,12 +432,19 @@ func (cw *CardWriter) Busy() bool {
 }
 
 func (cw *CardWriter) SetBusy() {
+	cw.computer.IOWaitGroup.Add(1)
+	cw.wg.Add(1)
 	cw.busy = true
 }
 
 func (cw *CardWriter) SetReady() {
 	cw.busy = false
+	cw.wg.Done()
 	cw.computer.IOWaitGroup.Done()
+}
+
+func (cw *CardWriter) WaitReady() {
+	cw.wg.Wait()
 }
 
 func (cw *CardWriter) BlockSize() int {
@@ -444,6 +478,7 @@ type LinePrinter struct {
 	filename string
 	busy     bool
 	ch       chan ioMessage
+	wg       sync.WaitGroup
 }
 
 func NewLinePrinter(computer *Computer, filename string) *LinePrinter {
@@ -474,12 +509,19 @@ func (lp *LinePrinter) Busy() bool {
 }
 
 func (lp *LinePrinter) SetBusy() {
+	lp.computer.IOWaitGroup.Add(1)
+	lp.wg.Add(1)
 	lp.busy = true
 }
 
 func (lp *LinePrinter) SetReady() {
 	lp.busy = false
+	lp.wg.Done()
 	lp.computer.IOWaitGroup.Done()
+}
+
+func (lp *LinePrinter) WaitReady() {
+	lp.wg.Wait()
 }
 
 func (lp *LinePrinter) BlockSize() int {
@@ -527,7 +569,7 @@ func spacePad(str string) string {
 		if len(str) > i {
 			bytes[i] = str[i]
 		} else {
-			bytes[i] = '_'
+			bytes[i] = ' '
 		}
 	}
 	return string(bytes)

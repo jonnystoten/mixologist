@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"encoding/binary"
 	"flag"
 	"io"
@@ -13,6 +14,7 @@ import (
 )
 
 func main() {
+	interactive := flag.Bool("interactive", false, "whether to launch in interactive mode")
 	format := flag.String("format", "deck", "the input format")
 	flag.Parse()
 
@@ -24,8 +26,7 @@ func main() {
 	switch *format {
 	case "deck":
 		instruction := mix.Instruction{OpCode: mix.IN, FieldSpec: 16, Address: mix.NewAddress(0)}
-		word := mix.EncodeInstruction(instruction)
-		operation := stir.Decode(word)
+		operation := stir.InputOutputOp{Instruction: instruction}
 		operation.Execute(computer)
 		computer.IOWaitGroup.Wait()
 		computer.ProgramCounter = 0
@@ -66,14 +67,26 @@ func main() {
 
 	log.Printf("Ready to go... (starting at %v)", computer.ProgramCounter)
 
-	computer.Run()
+	if *interactive {
+		computer.RunInteractive(func() {
+			PrintState(computer)
+			reader := bufio.NewReader(os.Stdin)
+			reader.ReadString('\n')
+		})
+	} else {
+		computer.Run()
+	}
 
 	log.Println("done, waiting for remaining IO...")
 	computer.IOWaitGroup.Wait()
 
 	log.Println("done!")
 	log.Println("==========")
+	PrintState(computer)
+}
 
+func PrintState(computer *stir.Computer) {
+	log.Printf("PC: %v", computer.ProgramCounter)
 	log.Printf("rA: %v", garnish.SprintWord(computer.Accumulator))
 	log.Printf("rX: %v", garnish.SprintWord(computer.Extension))
 	log.Printf("rI1: %v", garnish.SprintAddress(computer.Index[0]))

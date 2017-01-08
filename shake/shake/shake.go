@@ -17,7 +17,7 @@ import (
 
 func main() {
 	filename := flag.String("input", "", "the input file")
-	format := flag.String("format", "binary", "the output format")
+	format := flag.String("format", "deck", "the output format")
 	flag.Parse()
 
 	log.Println("SHAKE")
@@ -198,7 +198,7 @@ func makeGroups(memLocs []int) (groups [][]int) {
 	return
 }
 
-func loader() string {
+func loader() string { // TODO: load this from disk
 	return ` O O6 2 O6    I C O4 3 EH A  F F CF    E   EU 3 IH 0 EB   EJ  CA. 2 EU   EH Z EA
    EU 5A-H 0 EB  C U 4AEH 5AEN    E  CLU  ABG 2 EH Z EB J B. A  9    A    0`
 }
