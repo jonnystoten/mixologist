@@ -77,6 +77,7 @@ func (c *Computer) Run() {
 func (c *Computer) FetchDecodeExecute() {
 	word := c.Memory[c.ProgramCounter]
 	operation := Decode(word)
+	//log.Printf("Exec %v (%v)", word.Bytes[4], c.ProgramCounter)
 	operation.Execute(c)
 	switch operation.(type) {
 	case JumpOp:

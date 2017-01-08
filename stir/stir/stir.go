@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/binary"
+	"flag"
 	"io"
 	"log"
 	"os"
@@ -12,36 +13,58 @@ import (
 )
 
 func main() {
-	// format := flag.String("format", "dump", "the output format")
-	// flag.Parse()
+	format := flag.String("format", "deck", "the input format")
+	flag.Parse()
 
 	log.Println("STIR")
 	log.Println("==========")
-	words := []mix.Word{}
-	var start uint16
-	err := binary.Read(os.Stdin, binary.LittleEndian, &start)
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	for {
-		word := mix.Word{}
-		err := binary.Read(os.Stdin, binary.LittleEndian, &word)
-		if err != nil {
-			if err == io.EOF {
-				break
-			}
-			log.Fatalln(err)
-			return
-		}
-		words = append(words, word)
-	}
 
 	computer := stir.NewComputer()
-	copy(computer.Memory[:], words)
-	computer.ProgramCounter = int(start)
 
-	log.Printf("Ready to GO... (starting at %v)", computer.ProgramCounter)
+	switch *format {
+	case "deck":
+		instruction := mix.Instruction{OpCode: mix.IN, FieldSpec: 16, Address: mix.NewAddress(0)}
+		word := mix.EncodeInstruction(instruction)
+		operation := stir.Decode(word)
+		operation.Execute(computer)
+		computer.IOWaitGroup.Wait()
+		computer.ProgramCounter = 0
+		computer.JumpAddress = mix.NewAddress(0)
+	case "binary":
+		words := make([]mix.Word, 4000)
+		var start uint16
+		err := binary.Read(os.Stdin, binary.LittleEndian, &start)
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		for {
+			var loc uint16
+			err := binary.Read(os.Stdin, binary.LittleEndian, &loc)
+			if err != nil {
+				if err == io.EOF {
+					break
+				}
+				log.Fatalln(err)
+				return
+			}
+			word := mix.Word{}
+			err = binary.Read(os.Stdin, binary.LittleEndian, &word)
+			if err != nil {
+				if err == io.EOF {
+					break
+				}
+				log.Fatalln(err)
+				return
+			}
+			words[loc] = word
+		}
+
+		computer.Memory = words
+		computer.ProgramCounter = int(start)
+	}
+
+	log.Printf("Ready to go... (starting at %v)", computer.ProgramCounter)
 
 	computer.Run()
 

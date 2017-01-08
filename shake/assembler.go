@@ -7,7 +7,7 @@ import (
 )
 
 type Assembler struct {
-	Words                []mix.Word
+	Words                map[int]mix.Word
 	ProgramStart         int
 	locationCounter      int
 	symbolTable          map[string]int
@@ -17,7 +17,7 @@ type Assembler struct {
 
 func NewAssembler() *Assembler {
 	return &Assembler{
-		Words:                make([]mix.Word, 4000),
+		Words:                make(map[int]mix.Word),
 		symbolTable:          make(map[string]int),
 		futureRefTable:       make(map[string][]int),
 		literalConstantTable: make(map[string]int),
@@ -151,9 +151,11 @@ func (a *Assembler) fixupFutureRefs(name string, notCurrent bool) {
 			continue
 		}
 		address := mix.NewAddress(target)
-		a.Words[ref].Sign = address.Sign
-		a.Words[ref].Bytes[0] = address.Bytes[0]
-		a.Words[ref].Bytes[1] = address.Bytes[1]
+		word := a.Words[ref]
+		word.Sign = address.Sign
+		word.Bytes[0] = address.Bytes[0]
+		word.Bytes[1] = address.Bytes[1]
+		a.Words[ref] = word
 	}
 
 	if keep {

@@ -1,10 +1,6 @@
 package stir
 
-import (
-	"log"
-
-	"jonnystoten.com/mixologist/mix"
-)
+import "jonnystoten.com/mixologist/mix"
 
 type NumOp struct{ mix.Instruction }
 
@@ -18,10 +14,15 @@ func (op NumOp) Execute(c *Computer) {
 		result += (extB % 10) * mix.Pow(10, i)
 	}
 
-	log.Printf("NUM result = %v", result)
+	//log.Printf("NUM result = %v", result)
 
 	sign := c.Accumulator.Sign
-	c.Accumulator = mix.NewWord(result)
+	if mix.FitsInWord(result) {
+		c.Accumulator = mix.NewWord(result)
+	} else {
+		c.Overflow = true
+		c.Accumulator = mix.NewWordWithOverflow(result)
+	}
 	c.Accumulator.Sign = sign
 }
 
