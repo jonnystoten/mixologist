@@ -12,9 +12,9 @@ type Computer struct {
 	Running        bool
 	Accumulator    mix.Word
 	Extension      mix.Word
-	Index          [6]mix.Address
+	Index          []mix.Address
 	JumpAddress    mix.Address
-	Memory         [4000]mix.Word
+	Memory         []mix.Word
 	ProgramCounter int
 	Overflow       bool
 	Comparison     mix.Comparison
@@ -26,6 +26,8 @@ func NewComputer() *Computer {
 	computer := &Computer{}
 	computer.Accumulator = mix.Word{}
 	computer.Extension = mix.Word{}
+	computer.Index = make([]mix.Address, 6)
+	computer.Memory = make([]mix.Word, 4000)
 	setupIODevices(computer)
 	return computer
 }
