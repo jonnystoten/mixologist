@@ -12,6 +12,9 @@ import (
 )
 
 func main() {
+	// format := flag.String("format", "dump", "the output format")
+	// flag.Parse()
+
 	log.Println("STIR")
 	log.Println("==========")
 	words := []mix.Word{}

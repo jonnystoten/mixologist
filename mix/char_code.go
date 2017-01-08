@@ -71,7 +71,7 @@ func NewCharCodeMap() *CharCodeMap {
 	return ccm
 }
 
-var charCodes = NewCharCodeMap()
+var CharCodes = NewCharCodeMap()
 
 func (ccm *CharCodeMap) GetCode(r rune) byte {
 	return ccm.runeToByteTable[r]
@@ -93,7 +93,7 @@ func addCharCode(ccm *CharCodeMap, r rune, b byte) {
 func NewWordFromCharCode(str string) (word Word) {
 	index := 0 // can't use index from range because unicode
 	for _, char := range str {
-		code := charCodes.GetCode(char)
+		code := CharCodes.GetCode(char)
 		word.Bytes[index] = code
 		index++
 	}
@@ -103,7 +103,7 @@ func NewWordFromCharCode(str string) (word Word) {
 func WordToCharCodeString(word Word) string {
 	buf := bytes.Buffer{}
 	for _, code := range word.Bytes {
-		char := charCodes.GetChar(code)
+		char := CharCodes.GetChar(code)
 		buf.WriteRune(char)
 	}
 

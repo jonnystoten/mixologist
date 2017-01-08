@@ -1,10 +1,15 @@
 package main
 
 import (
+	"bytes"
 	"encoding/binary"
+	"flag"
 	"fmt"
+	"io"
 	"log"
 	"os"
+
+	"regexp"
 
 	"jonnystoten.com/mixologist/mix"
 	"jonnystoten.com/mixologist/mix/garnish"
@@ -12,20 +17,18 @@ import (
 )
 
 func main() {
-	args := os.Args[1:]
-	if len(args) != 1 {
-		log.Fatalln("Usage: shake filename")
-	}
-	filename := args[0]
+	filename := flag.String("input", "", "the input file")
+	format := flag.String("format", "binary", "the output format")
+	flag.Parse()
 
 	log.Println("SHAKE")
 	log.Println("==========")
 	log.Println("LEX:")
-	lex(filename)
+	lex(*filename)
 	log.Println()
 
 	log.Println("PARSE:")
-	prog := parse(filename)
+	prog := parse(*filename)
 	log.Println()
 
 	log.Println("ASSEMBLE:")
@@ -35,16 +38,71 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	binary.Write(os.Stdout, binary.LittleEndian, uint16(assembler.ProgramStart))
 	for i, word := range assembler.Words {
 		if word != (mix.Word{}) {
 			log.Printf("%04v: %v", i, garnish.SprintWord(word))
 		}
-		err = binary.Write(os.Stdout, binary.LittleEndian, word)
-		if err != nil {
-			log.Fatalln(err)
-			break
+	}
+
+	switch *format {
+	case "binary":
+		binary.Write(os.Stdout, binary.LittleEndian, uint16(assembler.ProgramStart))
+		for _, word := range assembler.Words {
+			err = binary.Write(os.Stdout, binary.LittleEndian, word)
+			if err != nil {
+				log.Fatalln(err)
+				break
+			}
 		}
+	case "raw":
+		buf := bytes.Buffer{}
+		for _, word := range assembler.Words {
+			code := mix.WordToCharCodeString(word)
+			buf.WriteString(code)
+			if buf.Len() == 80 {
+				str := buf.String()
+				buf = bytes.Buffer{}
+				emptyLine, _ := regexp.MatchString(`\s{80}`, str)
+				if !emptyLine {
+					_, err := io.WriteString(os.Stdout, str+"\n")
+					if err != nil {
+						log.Fatalln(err)
+						break
+					}
+				}
+			}
+		}
+	case "deck":
+		// TODO: assemble only words from the source, then
+		// group into card sized groups and output together
+		buf := bytes.Buffer{}
+		//buf.WriteString("SHAKE7") // TODO: don't hard-code 7
+		for _, word := range assembler.Words {
+			value := word.Value()
+			if value >= 0 {
+				fmt.Fprintf(&buf, "%010v", value)
+			} else {
+				value = -value
+				fmt.Fprintf(&buf, "%09v", value/10)
+				lsb := value % 10
+				char := mix.CharCodes.GetChar(byte(lsb + 10))
+				buf.WriteRune(char)
+			}
+			if buf.Len() == 80 {
+				str := buf.String()
+				buf = bytes.Buffer{}
+				emptyLine, _ := regexp.MatchString(`0{80}`, str)
+				if !emptyLine {
+					_, err := fmt.Fprintf(os.Stdout, "%v\n", str)
+					if err != nil {
+						log.Fatalln(err)
+						break
+					}
+				}
+			}
+		}
+
+		fmt.Fprintf(os.Stdout, "TRANS0%04v\n", assembler.ProgramStart)
 	}
 
 	log.Println("done!")
