@@ -2,6 +2,8 @@ package shake
 
 import (
 	"fmt"
+	"log"
+	"strconv"
 
 	"jonnystoten.com/mixologist/mix"
 )
@@ -68,6 +70,11 @@ func (a *Assembler) Assemble(program *Program) error {
 	}
 
 	a.insertLiteralConstants()
+
+	log.Println("SYMBOLS")
+	for name, val := range a.symbolTable {
+		log.Printf("%v = %v", name, val)
+	}
 
 	return nil
 }
@@ -223,7 +230,7 @@ func (a *Assembler) visitWValue(wVal WValue) int {
 
 func (a *Assembler) visitLiteralConstant(literal LiteralConstant) int {
 	value := a.getValue(literal.Value)
-	name := "__literal:" + string(len(a.literalConstantTable))
+	name := "__literal:" + strconv.Itoa(value)
 	a.literalConstantTable[name] = value
 	a.addFutureRef(name)
 	return 0
