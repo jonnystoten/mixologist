@@ -67,11 +67,18 @@ func main() {
 
 	log.Printf("Ready to go... (starting at %v)", computer.ProgramCounter)
 
+	broke := false
 	if *interactive {
 		computer.RunInteractive(func() {
-			PrintState(computer)
-			reader := bufio.NewReader(os.Stdin)
-			reader.ReadString('\n')
+			if computer.ProgramCounter == 12 && computer.Accumulator.Value() == 0 {
+				// if loading finished
+				broke = true
+			}
+			if broke {
+				PrintState(computer)
+				reader := bufio.NewReader(os.Stdin)
+				reader.ReadString('\n')
+			}
 		})
 	} else {
 		computer.Run()
