@@ -5,7 +5,9 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
+	"log"
 	"os"
+	"strings"
 
 	"bufio"
 
@@ -540,9 +542,11 @@ func (lp *LinePrinter) Write(words []mix.Word) error {
 		str := mix.WordToCharCodeString(word)
 		buf.WriteString(str)
 	}
-	buf.WriteRune('\n')
+	output := strings.TrimRight(buf.String(), " ")
+	output += "\n"
 
-	_, err = file.WriteString(buf.String())
+	log.Print(output)
+	_, err = file.WriteString(output)
 	if err != nil {
 		return err
 	}
